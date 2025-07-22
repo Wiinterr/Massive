@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "EliteUnit.generated.h"
 #include "BaseUnit.h"
+#include "EliteUnit.generated.h"
 
-UCLASS()
+UCLASS(Blueprintable)
 class MASSIVE_API AEliteUnit : public ABaseUnit
 {
 	GENERATED_BODY()
@@ -30,8 +30,5 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };

@@ -9,6 +9,7 @@ ABaseUnit::ABaseUnit()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootComponent = CreateDefaultSubobject<USceneComponent>("Root");
 }
 
 // Called when the game starts or when spawned
@@ -22,13 +23,6 @@ void ABaseUnit::BeginPlay()
 void ABaseUnit::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void ABaseUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
 

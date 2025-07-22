@@ -26,10 +26,3 @@ void AEliteUnit::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
-void AEliteUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-

@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "UnitSpawner.generated.h"
 #include <BaseUnit.h>
+#include "UnitSpawner.generated.h"
 
 // Enum to define different unit types
 UENUM(BlueprintType)
@@ -16,7 +16,7 @@ enum class EUnitType : uint8
 	Hero	UMETA(DisplayName = "Hero Unit")
 };
 
-UCLASS()
+UCLASS(Blueprintable)
 class MASSIVE_API UUnitSpawner : public UWorldSubsystem
 {
 	GENERATED_BODY()
