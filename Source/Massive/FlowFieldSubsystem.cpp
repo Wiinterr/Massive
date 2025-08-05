@@ -1,256 +1,122 @@
 #include "FlowFieldSubsystem.h"
-#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
 
 void UFlowFieldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-    Super::Initialize(Collection);
+	Super::Initialize(Collection);
+	UE_LOG(LogTemp, Log, TEXT("FlowFieldSubsystem Initialized"));
 }
 
 void UFlowFieldSubsystem::Deinitialize()
 {
-    Grid.Empty();
-    Super::Deinitialize();
+	Super::Deinitialize();
+	UE_LOG(LogTemp, Log, TEXT("FlowFieldSubsystem Deinitialized"));
 }
 
-void UFlowFieldSubsystem::CreateFlowFieldGrid(int32 Width, int32 Height, float InCellSize, const FVector& InGridOrigin)
-{
-    GridWidth = Width;
-    GridHeight = Height;
-    CellSize = InCellSize;
-    GridOrigin = InGridOrigin;
 
-    Grid.SetNum(GridWidth);
-    for (int32 x = 0; x < GridWidth; ++x)
-    {
-        Grid[x].SetNum(GridHeight);
-        for (int32 y = 0; y < GridHeight; ++y)
-        {
-            FFlowFieldCell& Cell = Grid[x][y];
-            Cell.WorldLocation = GridToWorld(FIntPoint(x, y));
-            Cell.FlowDirection = FVector::ZeroVector;
-            Cell.IntegrationCost = TNumericLimits<float>::Max();
-            Cell.MovementCost = 1.0f;
-        }
-    }
+void UFlowFieldSubsystem::CreateGrid(int32 inWidth, int32 inHeight, float inCellSize, FVector inOrigin)
+{
+	GridWidth = inWidth;
+	GridHeight = inHeight;
+	CellSize = inCellSize;
+	GridOrigin = inOrigin;
+	
+	if(GridWidth <= 0 || GridHeight <= 0 || CellSize <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid grid parameters"));
+		return;
+	}
+	
+	GridCells.Empty();
+	
+	float const GridOffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
+	float const GridOffsetY = (GridHeight * CellSize) * 0.5f - CellSize * 0.5f;
+
+	for (int y{}; y < GridHeight; y++)
+	{
+		for (int x{}; x < GridWidth; x++)
+		{
+			FVector const CellLocation = GridOrigin +
+				FVector(x * CellSize - GridOffsetX, y * CellSize - GridOffsetY, 0.0f);
+
+			FFlowFieldCell Cell;
+			Cell.GridX = x;
+			Cell.GridY = y;
+			Cell.WorldLocation = CellLocation;
+
+			GridCells.Add(Cell);
+		}
+	}
 }
 
-void UFlowFieldSubsystem::GenerateFlowFieldToLocation(const FVector& TargetLocation)
+void UFlowFieldSubsystem::SetTargetCell(int32 x, int32 y)
 {
-    if (Grid.IsEmpty()) return;
+	TargetCellIndex = FIntPoint(x, y);
 
-    const FIntPoint TargetCell = WorldToGrid(TargetLocation);
-    if (!IsValidGridCoordinate(TargetCell)) return;
+	for (FFlowFieldCell& Cell : GridCells)
+	{
+		Cell.IntegrationValue = TNumericLimits<int32>::Max();
+	}
 
-    CalculateIntegrationField(TargetCell);
-    CalculateFlowDirections();
-
-    if (bDebugDrawingEnabled)
-    {
-        DrawDebugFlowField(true, DebugDrawDuration);
-    }
+	ComputeIntegrationField();
 }
 
-void UFlowFieldSubsystem::CalculateIntegrationField(const FIntPoint& TargetCell)
+void UFlowFieldSubsystem::ComputeIntegrationField()
 {
-    for (int32 x = 0; x < GridWidth; ++x)
-    {
-        for (int32 y = 0; y < GridHeight; ++y)
-        {
-            Grid[x][y].IntegrationCost = TNumericLimits<float>::Max();
-        }
-    }
+	TQueue<FFlowFieldCell*> CellQueue;
 
-    // Dijkstra's algorithm
-    TArray<FIntPoint> OpenSet;
-    Grid[TargetCell.X][TargetCell.Y].IntegrationCost = 0;
-    OpenSet.Add(TargetCell);
+	FFlowFieldCell* TargetCell = GetCellAt(TargetCellIndex.X, TargetCellIndex.Y);
+	if (!TargetCell) return;
 
-    while (OpenSet.Num() > 0)
-    {
-        const FIntPoint CurrentCell = OpenSet.Pop();
+	TargetCell->IntegrationValue = 0;
+	CellQueue.Enqueue(TargetCell);
 
-        // Check all 8 neighbors
-        for (int32 x = -1; x <= 1; ++x)
-        {
-            for (int32 y = -1; y <= 1; ++y)
-            {
-                if (x == 0 && y == 0) continue;
+	while (!CellQueue.IsEmpty())
+	{
+		FFlowFieldCell* Current;
+		CellQueue.Dequeue(Current);
 
-                const FIntPoint Neighbor(CurrentCell.X + x, CurrentCell.Y + y);
-                if (!IsValidGridCoordinate(Neighbor)) continue;
+		TArray<FFlowFieldCell*> Neighbors = GetCellNeighbors(*Current);
 
-                const FFlowFieldCell& Current = Grid[CurrentCell.X][CurrentCell.Y];
-                FFlowFieldCell& NeighborCell = Grid[Neighbor.X][Neighbor.Y];
-
-                // Skip blocked cells (movement cost 0)
-                if (NeighborCell.MovementCost <= 0.0f) continue;
-
-                // Calculate move cost (orthogonal = 1, diagonal ≈ 1.4)
-                const bool bIsDiagonal = (x != 0) && (y != 0);
-                const float MoveCost = bIsDiagonal ? 1.4f : 1.0f;
-                const float NewCost = Current.IntegrationCost + (MoveCost * NeighborCell.MovementCost);
-
-                if (NewCost < NeighborCell.IntegrationCost)
-                {
-                    NeighborCell.IntegrationCost = NewCost;
-                    OpenSet.Add(Neighbor);
-                }
-            }
-        }
-    }
+		for (FFlowFieldCell* Neighbor : Neighbors)
+		{
+			int32 NewCost = Current->IntegrationValue + Neighbor->Cost;
+			if (NewCost < Neighbor->IntegrationValue)
+			{
+				Neighbor->IntegrationValue = NewCost;
+				CellQueue.Enqueue(Neighbor);
+			}
+		}
+	}
 }
 
-void UFlowFieldSubsystem::CalculateFlowDirections()
+FFlowFieldCell* UFlowFieldSubsystem::GetCellAt(int32 x, int32 y)
 {
-    for (int32 x = 0; x < GridWidth; ++x)
-    {
-        for (int32 y = 0; y < GridHeight; ++y)
-        {
-            FFlowFieldCell& CurrentCell = Grid[x][y];
-            CurrentCell.FlowDirection = FVector::ZeroVector;
-
-            if (CurrentCell.IntegrationCost == TNumericLimits<float>::Max()) continue;
-
-            float LowestCost = TNumericLimits<float>::Max();
-            FIntPoint BestNeighbor;
-
-            // Check all 8 neighbors
-            for (int32 nx = -1; nx <= 1; ++nx)
-            {
-                for (int32 ny = -1; ny <= 1; ++ny)
-                {
-                    if (nx == 0 && ny == 0) continue;
-
-                    const FIntPoint Neighbor(x + nx, y + ny);
-                    if (!IsValidGridCoordinate(Neighbor)) continue;
-
-                    const FFlowFieldCell& NeighborCell = Grid[Neighbor.X][Neighbor.Y];
-                    if (NeighborCell.IntegrationCost < LowestCost)
-                    {
-                        LowestCost = NeighborCell.IntegrationCost;
-                        BestNeighbor = Neighbor;
-                    }
-                }
-            }
-
-            if (LowestCost < TNumericLimits<float>::Max())
-            {
-                const FVector CurrentWorld = GridToWorld(FIntPoint(x, y));
-                const FVector BestWorld = GridToWorld(BestNeighbor);
-                CurrentCell.FlowDirection = (BestWorld - CurrentWorld).GetSafeNormal();
-            }
-        }
-    }
+	if (x < 0 || x >= GridWidth || y < 0 || y >= GridHeight) return nullptr;
+	
+	return &GridCells[y * GridWidth + x];
 }
 
-FVector UFlowFieldSubsystem::GetFlowDirectionAtLocation(const FVector& WorldLocation) const
+TArray<FFlowFieldCell*> UFlowFieldSubsystem::GetCellNeighbors(FFlowFieldCell& Cell)
 {
-    FFlowFieldCell Cell;
-    if (GetGridCellAtLocation(WorldLocation, Cell))
-    {
-        return Cell.FlowDirection;
-    }
-    return FVector::ZeroVector;
-}
+	TArray<FFlowFieldCell*> Neighbors;
 
-bool UFlowFieldSubsystem::GetGridCellAtLocation(const FVector& WorldLocation, FFlowFieldCell& OutCell) const
-{
-    const FIntPoint GridCoord = WorldToGrid(WorldLocation);
-    if (IsValidGridCoordinate(GridCoord))
-    {
-        OutCell = Grid[GridCoord.X][GridCoord.Y];
-        return true;
-    }
-    return false;
-}
+	constexpr int32 Offsets[4][2] =
+		{
+		{1, 0}, {-1, 0}, {0, 1}, {0, -1}
+		};
 
-void UFlowFieldSubsystem::DrawDebugFlowField(bool bEnabled, float Duration)
-{
-    bDebugDrawingEnabled = bEnabled;
-    DebugDrawDuration = Duration;
+	for (const auto& Offset : Offsets)
+	{
+		int32 neighborX = Cell.GridX + Offset[0];
+		int32 neighborY = Cell.GridY + Offset[1];
 
-    if (!bDebugDrawingEnabled) return;
+		if (FFlowFieldCell* Neighbor = GetCellAt(neighborX, neighborY))
+		{
+			Neighbors.Add(Neighbor);
+		}
+	}
 
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    const float ArrowSize = CellSize * 0.4f;
-    const float ArrowThickness = 2.0f;
-
-    for (int32 x = 0; x < GridWidth; ++x)
-    {
-        for (int32 y = 0; y < GridHeight; ++y)
-        {
-            const FFlowFieldCell& Cell = Grid[x][y];
-            
-            // Draw cell boundary
-            DrawDebugBox(
-                World,
-                Cell.WorldLocation,
-                FVector(CellSize * 0.5f, CellSize * 0.5f, 10.0f),
-                FColor::White,
-                false,
-                DebugDrawDuration,
-                0,
-                1.0f
-            );
-
-            // Draw flow direction arrow if valid
-            if (!Cell.FlowDirection.IsNearlyZero())
-            {
-                const FVector EndPoint = Cell.WorldLocation + (Cell.FlowDirection * CellSize * 0.4f);
-                DrawDebugDirectionalArrow(
-                    World,
-                    Cell.WorldLocation,
-                    EndPoint,
-                    ArrowSize,
-                    FColor::Green,
-                    false,
-                    DebugDrawDuration,
-                    0,
-                    ArrowThickness
-                );
-            }
-
-            // Draw integration cost
-            if (Cell.IntegrationCost < TNumericLimits<float>::Max())
-            {
-                DrawDebugString(
-                    World,
-                    Cell.WorldLocation + FVector(0, 0, 20.0f),
-                    FString::Printf(TEXT("%.1f"), Cell.IntegrationCost),
-                    nullptr,
-                    FColor::Yellow,
-                    DebugDrawDuration,
-                    false,
-                    1.0f
-                );
-            }
-        }
-    }
-}
-
-FIntPoint UFlowFieldSubsystem::WorldToGrid(const FVector& WorldLocation) const
-{
-    const FVector LocalLocation = WorldLocation - GridOrigin;
-    const int32 X = FMath::FloorToInt(LocalLocation.X / CellSize + 0.5f);
-    const int32 Y = FMath::FloorToInt(LocalLocation.Y / CellSize + 0.5f);
-    return FIntPoint(
-        FMath::Clamp(X, 0, GridWidth - 1),
-        FMath::Clamp(Y, 0, GridHeight - 1)
-    );
-}
-
-FVector UFlowFieldSubsystem::GridToWorld(const FIntPoint& GridCoord) const
-{
-    return GridOrigin + FVector(
-        GridCoord.X * CellSize,
-        GridCoord.Y * CellSize,
-        0.0f
-    );
-}
-
-bool UFlowFieldSubsystem::IsValidGridCoordinate(const FIntPoint& Coord) const
-{
-    return Coord.X >= 0 && Coord.Y >= 0 && Coord.X < GridWidth && Coord.Y < GridHeight;
+	return Neighbors;
 }

@@ -2,65 +2,35 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "FlowFieldTypes.h"
 #include "FlowFieldSubsystem.generated.h"
 
-USTRUCT(BlueprintType)
-struct FFlowFieldCell
-{
-	GENERATED_BODY();
-
-	UPROPERTY(BlueprintReadOnly)
-	FVector WorldLocation;
-
-	UPROPERTY(BlueprintReadOnly)
-	FVector FlowDirection;
-
-	UPROPERTY(BlueprintReadOnly)
-	float IntegrationCost = TNumericLimits<float>::Max();
-
-	UPROPERTY(BlueprintReadOnly)
-	float MovementCost = 1.0f;
-};
-
-UCLASS(Blueprintable, BlueprintType)
+UCLASS()
 class MASSIVE_API UFlowFieldSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
+
+public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+
+	void CreateGrid(int32 inWidth, int32 inHeight, float inCellSize, FVector inOrigin);
+	void SetTargetCell(int32 x, int32 y);
+	void ComputeIntegrationField();
+	//void ComputeFlowDirections(); TODO
+
+	const TArray<FFlowFieldCell>& GetGridCells() const { return GridCells; };
 	
-	public:
-		virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	FFlowFieldCell* GetCellAt(int32 x, int32 y);
 
-		virtual void Deinitialize() override;
-
-		UFUNCTION(BlueprintCallable, Category = "Flow Field")
-		void CreateFlowFieldGrid(int32 Width, int32 Height, float CellSize, const FVector& GridOrigin);
-
-		UFUNCTION(BlueprintCallable, Category = "Flow Field")
-		void GenerateFlowFieldToLocation(const FVector& TargetLocation);
-
-		UFUNCTION(BlueprintPure, Category = "Flow Field")
-		FVector GetFlowDirectionAtLocation(const FVector& WorldLocation) const;
-
-		UFUNCTION(BlueprintPure, Category = "Flow Field")
-		bool GetGridCellAtLocation(const FVector& WorldLocation, FFlowFieldCell& OutCell) const;
-
-		UFUNCTION(BlueprintCallable, Category = "Flow Field")
-		void DrawDebugFlowField(bool bEnabled, float Duration = -1.0f);
-
-	private:
-		TArray<TArray<FFlowFieldCell>> Grid;
-		float CellSize = 200.0f;
-		FVector GridOrigin = FVector::ZeroVector;
-		int32 GridWidth = 0;
-		int32 GridHeight = 0;
-
-		bool bDebugDrawingEnabled = false;
-		float DebugDrawDuration = -1.0f;
-
-		void CalculateIntegrationField(const FIntPoint& TargetCell);
-		void CalculateFlowDirections();
-		FIntPoint WorldToGrid(const FVector& WorldLocation) const;
-		FVector GridToWorld(const FIntPoint& GridCoord) const;
-		bool IsValidGridCoordinate(const FIntPoint& Coord) const;
+private:
+	int32 GridWidth = 0;
+	int32 GridHeight = 0;
+	float CellSize = 100.f;
+	FVector GridOrigin;
+	
+	TArray<FFlowFieldCell> GridCells;
+	FIntPoint TargetCellIndex = FIntPoint(-1, -1);
+	TArray<FFlowFieldCell*> GetCellNeighbors(FFlowFieldCell& Cell);
 };
 
