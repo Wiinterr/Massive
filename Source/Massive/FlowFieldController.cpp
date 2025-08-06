@@ -1,5 +1,6 @@
 #include "FlowFieldController.h"
 #include "DrawDebugHelpers.h"
+#include "PropertyAccess.h"
 
 AFlowFieldController::AFlowFieldController()
 {
@@ -89,7 +90,14 @@ void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLoca
 {
 	if (GridCells.Num() == 0) return;
 
-	FVector LocalPos = WorldLocation - GridOrigin;
+	TargetIndex = WorldLocationToIndex(WorldLocation);
+	
+	SetTargetCell(TargetIndex.X, TargetIndex.Y);
+}
+
+FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocation)
+{
+	FVector const LocalPos = WorldLocation - GridOrigin;
 
 	float const OffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
 	float const OffsetY = (GridHeight * CellSize) * 0.5f - CellSize * 0.5f;
@@ -100,12 +108,18 @@ void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLoca
 	int32 GridX = FMath::RoundToInt(LocalX / CellSize);
 	int32 GridY = FMath::RoundToInt(LocalY / CellSize);
 
-	GridX = FMath::Clamp(GridX, 0, GridWidth);
-	GridY = FMath::Clamp(GridY, 0, GridHeight);
-
-	TargetIndex = FIntPoint(GridX, GridY);
-	SetTargetCell(GridX, GridY);
+	GridX = FMath::Clamp(GridX, 0, GridWidth - 1);
+	GridY = FMath::Clamp(GridY, 0, GridHeight - 1);
+	
+	return FIntPoint(GridX, GridY);
 }
+
+FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
+{
+	int32 const FlattenedIndex = index.Y * GridWidth + index.X;
+	return GridCells[FlattenedIndex].FlowDirection;
+}
+
 
 void AFlowFieldController::SetTargetCell(int32 x, int32 y)
 {
@@ -143,6 +157,15 @@ void AFlowFieldController::ComputeIntegrationField()
 		for (FFlowFieldCell* Neighbor : Neighbors)
 		{
 			int32 NewCost = Current->IntegrationValue + Neighbor->Cost;
+
+			// If roughly diagonal to target cell, add cost
+			FVector ToTarget = (TargetCell->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
+			FVector Direction = (Current->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
+
+			float const Angle = FMath::Acos(FVector::DotProduct(Direction, ToTarget));
+			float const AnglePenalty = FMath::Clamp(Angle / (PI / 2.f), 0.f, 1.f); // 0 to 1 scale
+			NewCost += FMath::RoundToInt(AnglePenalty * 2.5f); // Adjust multiplier (2.f) as needed
+			
 			if (NewCost < Neighbor->IntegrationValue)
 			{
 				Neighbor->IntegrationValue = NewCost;
@@ -172,7 +195,7 @@ void AFlowFieldController::ComputeDirections()
 
 		if (BestNeighbor)
 		{
-			FVector Direction = (BestNeighbor->WorldLocation - Cell.WorldLocation).GetSafeNormal();
+			FVector const Direction = (BestNeighbor->WorldLocation - Cell.WorldLocation).GetSafeNormal();
 			Cell.FlowDirection = Direction;
 		}
 		else
@@ -194,17 +217,18 @@ TArray<FFlowFieldCell*> AFlowFieldController::GetCellNeighbors(FFlowFieldCell co
 {
 	TArray<FFlowFieldCell*> Neighbors;
 
-	constexpr int32 Offsets[4][2] =
-		{
-		{1, 0}, {-1, 0}, {0, 1}, {0, -1}
-		};
+	const int32 Offsets[8][2] =
+	{
+		{0, 1}, {0, -1}, {-1, 0}, {1, 0},	// Cardinal
+		{-1, -1}, {1, -1}, {1, 1}, {-1, 1}	// Diagonal
+	};
 
 	for (const auto& Offset : Offsets)
 	{
-		int32 neighborX = Cell.GridX + Offset[0];
-		int32 neighborY = Cell.GridY + Offset[1];
+		int32 NeighborX = Cell.GridX + Offset[0];
+		int32 NeighborY = Cell.GridY + Offset[1];
 
-		if (FFlowFieldCell* Neighbor = GetCellAt(neighborX, neighborY))
+		if (FFlowFieldCell* Neighbor = GetCellAt(NeighborX, NeighborY))
 		{
 			Neighbors.Add(Neighbor);
 		}
@@ -212,3 +236,4 @@ TArray<FFlowFieldCell*> AFlowFieldController::GetCellNeighbors(FFlowFieldCell co
 
 	return Neighbors;
 }
+

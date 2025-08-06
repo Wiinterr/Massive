@@ -30,6 +30,12 @@ public:
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	void SetTargetCellByWorldLocation(FVector const& WorldLocation);
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
+	FIntPoint WorldLocationToIndex(FVector const& WorldLocation);
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
+	FVector GetFlowOfCell(FIntPoint index);
 	
 protected:
 	virtual void BeginPlay() override;
