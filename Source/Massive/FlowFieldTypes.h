@@ -8,22 +8,28 @@ struct FFlowFieldCell
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FFlowFieldCell()
+		: WorldLocation(FVector::ZeroVector)
+		, FlowDirection(FVector::ZeroVector)
+		, GridX(0), GridY(0), Cost(1)
+		, IntegrationValue(TNumericLimits<int32>::Max()){}
+
+	UPROPERTY(VisibleAnywhere)
 	FVector WorldLocation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector FlowDirection = FVector(0,0,0);
+	UPROPERTY(VisibleAnywhere)
+	FVector FlowDirection;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 GridX = 0;
+	UPROPERTY(VisibleAnywhere)
+	int32 GridX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 GridY = 0;
+	UPROPERTY(VisibleAnywhere)
+	int32 GridY;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 Cost = 1;
+	UPROPERTY(VisibleAnywhere)
+	int32 Cost;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 IntegrationValue = TNumericLimits<int32>::Max();
+	UPROPERTY(VisibleAnywhere)
+	int32 IntegrationValue;
 };
 

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "FlowFieldTypes.h"
 #include "FlowFieldController.generated.h"
 
 UCLASS()
@@ -23,14 +24,27 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
 	FIntPoint TargetIndex = FIntPoint(5, 5);
-
+	
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	void GenerateGrid();
 
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
+	void SetTargetCellByWorldLocation(FVector const& WorldLocation);
+	
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	FVector GridOrigin;
+	TArray<FFlowFieldCell> GridCells;
+	
+	void CreateGrid();
 	void DrawDebugGrid();
+	
+	void SetTargetCell(int32 x, int32 y);
+	void ComputeIntegrationField();
+	void ComputeDirections();
+	TArray<FFlowFieldCell*> GetCellNeighbors(FFlowFieldCell const& Cell);
+	FFlowFieldCell* GetCellAt(int32 const& x, int32 const& y);
 	
 };
