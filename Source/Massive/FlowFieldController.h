@@ -47,7 +47,7 @@ private:
 	void CreateGrid();
 	void DrawDebugGrid();
 	
-	void SetTargetCell(int32 x, int32 y);
+	void SetTargetCell(int32 const& x, int32 const& y);
 	void ComputeIntegrationField();
 	void ComputeDirections();
 	TArray<FFlowFieldCell*> GetCellNeighbors(FFlowFieldCell const& Cell);

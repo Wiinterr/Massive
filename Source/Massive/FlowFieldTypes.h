@@ -12,7 +12,7 @@ struct FFlowFieldCell
 		: WorldLocation(FVector::ZeroVector)
 		, FlowDirection(FVector::ZeroVector)
 		, GridX(0), GridY(0), Cost(1)
-		, IntegrationValue(TNumericLimits<int32>::Max()){}
+		, IntegrationValue(TNumericLimits<float>::Max()){}
 
 	UPROPERTY(VisibleAnywhere)
 	FVector WorldLocation;
@@ -27,9 +27,9 @@ struct FFlowFieldCell
 	int32 GridY;
 
 	UPROPERTY(VisibleAnywhere)
-	int32 Cost;
+	float Cost;
 
 	UPROPERTY(VisibleAnywhere)
-	int32 IntegrationValue;
+	float IntegrationValue;
 };
 

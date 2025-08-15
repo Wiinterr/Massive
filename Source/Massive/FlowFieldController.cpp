@@ -65,10 +65,10 @@ void AFlowFieldController::DrawDebugGrid()
 		DrawDebugString(
 			GetWorld(),
 			Cell.WorldLocation,
-			FString::FromInt(Cell.Cost),
+			FString::Printf(TEXT("%.2f"), Cell.IntegrationValue),
 			nullptr,
 			FColor::White,
-			5.f,
+			-1.f,
 			false
 			);
 
@@ -102,8 +102,8 @@ FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocatio
 	float const OffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
 	float const OffsetY = (GridHeight * CellSize) * 0.5f - CellSize * 0.5f;
 
-	float LocalX = LocalPos.X + OffsetX;
-	float LocalY = LocalPos.Y + OffsetY;
+	float const LocalX = LocalPos.X + OffsetX;
+	float const LocalY = LocalPos.Y + OffsetY;
 
 	int32 GridX = FMath::RoundToInt(LocalX / CellSize);
 	int32 GridY = FMath::RoundToInt(LocalY / CellSize);
@@ -121,7 +121,7 @@ FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
 }
 
 
-void AFlowFieldController::SetTargetCell(int32 x, int32 y)
+void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 {
 	TargetIndex = FIntPoint(x, y);
 
@@ -134,6 +134,7 @@ void AFlowFieldController::SetTargetCell(int32 x, int32 y)
 	ComputeDirections();
 
 	FlushPersistentDebugLines(GetWorld());
+	FlushDebugStrings(GetWorld());
 	DrawDebugGrid();
 }
 
@@ -156,15 +157,9 @@ void AFlowFieldController::ComputeIntegrationField()
 
 		for (FFlowFieldCell* Neighbor : Neighbors)
 		{
-			int32 NewCost = Current->IntegrationValue + Neighbor->Cost;
+			bool const bIsDiagonal = (Current->GridX != Neighbor->GridX) && (Current->GridY != Neighbor->GridY);
 
-			// If roughly diagonal to target cell, add cost
-			FVector ToTarget = (TargetCell->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
-			FVector Direction = (Current->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
-
-			float const Angle = FMath::Acos(FVector::DotProduct(Direction, ToTarget));
-			float const AnglePenalty = FMath::Clamp(Angle / (PI / 2.f), 0.f, 1.f); // 0 to 1 scale
-			NewCost += FMath::RoundToInt(AnglePenalty * 2.5f); // Adjust multiplier (2.f) as needed
+			float const NewCost = Current->IntegrationValue + (bIsDiagonal ? Neighbor->Cost * 1.41f : Neighbor->Cost);
 			
 			if (NewCost < Neighbor->IntegrationValue)
 			{
