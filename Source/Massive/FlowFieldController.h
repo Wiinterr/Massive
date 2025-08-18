@@ -23,6 +23,9 @@ public:
 	float CellSize = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
+	float AnglePenalty = 1.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
 	FIntPoint TargetIndex = FIntPoint(5, 5);
 	
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")

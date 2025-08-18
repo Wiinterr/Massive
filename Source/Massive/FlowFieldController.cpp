@@ -51,6 +51,9 @@ void AFlowFieldController::CreateGrid()
 
 void AFlowFieldController::DrawDebugGrid()
 {
+	FlushPersistentDebugLines(GetWorld());
+	FlushDebugStrings(GetWorld());
+	
 	for (const FFlowFieldCell& Cell : GridCells)
 	{
 		DrawDebugBox(
@@ -132,9 +135,7 @@ void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 
 	ComputeIntegrationField();
 	ComputeDirections();
-
-	FlushPersistentDebugLines(GetWorld());
-	FlushDebugStrings(GetWorld());
+	
 	DrawDebugGrid();
 }
 
@@ -153,13 +154,17 @@ void AFlowFieldController::ComputeIntegrationField()
 		FFlowFieldCell* Current;
 		CellQueue.Dequeue(Current);
 
-		TArray<FFlowFieldCell*> Neighbors = GetCellNeighbors(*Current);
-
-		for (FFlowFieldCell* Neighbor : Neighbors)
+		for (FFlowFieldCell* Neighbor : GetCellNeighbors(*Current))
 		{
-			bool const bIsDiagonal = (Current->GridX != Neighbor->GridX) && (Current->GridY != Neighbor->GridY);
+			FVector2D const DirToTarget = FVector2D(TargetCell->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
+			float const Angle = FMath::Atan2(DirToTarget.Y, DirToTarget.X);
+			float const Snapped = FMath::RoundToFloat(Angle / (PI / 2.f)) * (PI / 2.f);
 
-			float const NewCost = Current->IntegrationValue + (bIsDiagonal ? Neighbor->Cost * 1.41f : Neighbor->Cost);
+			// If an angle is 15 degrees more than a cardinal direction we consider it 'diagonal' and add a cost to it
+			float NeighborCost = Neighbor->Cost;
+			if (FMath::Abs(Angle - Snapped) > (PI / 12.f)) NeighborCost += AnglePenalty;
+
+			float NewCost = Current->IntegrationValue + NeighborCost;
 			
 			if (NewCost < Neighbor->IntegrationValue)
 			{
@@ -177,7 +182,7 @@ void AFlowFieldController::ComputeDirections()
 		TArray<FFlowFieldCell*> Neighbors = GetCellNeighbors(Cell);
 
 		FFlowFieldCell* BestNeighbor = nullptr;
-		int32 BestCost = Cell.IntegrationValue;
+		float BestCost = Cell.IntegrationValue;
 
 		for (FFlowFieldCell* Neighbor : Neighbors)
 		{
@@ -199,7 +204,6 @@ void AFlowFieldController::ComputeDirections()
 		}
 	}
 }
-
 
 FFlowFieldCell* AFlowFieldController::GetCellAt(int32 const& x, int32 const& y)
 {
