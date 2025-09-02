@@ -45,23 +45,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AStar")
 	bool bDrawDebugPath = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AStar")
-	FColor DebugPathColor = FColor::Green;
-
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="AStar")
 	void CreateDefaultCostMap(int32 InGridWidth = -1, int32 InGridHeight = -1);
 
-	// Find path given start and goal as grid indices (FIntPoint: X=col, Y=row)
-	// Returns an array of grid coordinates (FIntPoint) from start -> goal (inclusive)
 	UFUNCTION(BlueprintCallable, Category="AStar")
-	TArray<FIntPoint> FindPathBP(FIntPoint StartCell, FIntPoint GoalCell);
+	TArray<FVector> FindPath(const FVector& StartWorld, const FVector& GoalWorld);
 
+	TArray<FIntPoint> RunAStar(const FIntPoint& StartCell, const FIntPoint& GoalCell);
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+private:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -72,7 +68,10 @@ public:
 	float MovementCostBetween(int32 AIndex, int32 BIndex) const;
 	TArray<int32> GetNeighborsIndices(int32 Index) const;
 
-	void DrawDebugPath(const TArray<int32>& PathIndices) const;
+	FIntPoint WorldToCell(const FVector& WorldLocation) const;
+	FVector CellToWorld(const FIntPoint& Cell) const;
+	
+	void DrawDebugGrid();
 
     // Open set (binary heap with positions for decrease-key)
     struct FHeapItem

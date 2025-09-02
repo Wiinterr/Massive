@@ -39,6 +39,8 @@ void AAStarController::GenerateCostMap()
 	{
 		CreateDefaultCostMap();
 	}
+	
+	if (bDrawDebugPath) DrawDebugGrid();
 }
 
 void AAStarController::CreateDefaultCostMap(int32 InGridWidth, int32 InGridHeight)
@@ -47,6 +49,47 @@ void AAStarController::CreateDefaultCostMap(int32 InGridWidth, int32 InGridHeigh
 	if (InGridHeight > 0) GridHeight = InGridHeight;
 
 	CostMap.Init(1, GridWidth * GridHeight); // default cost 1, walkable
+}
+
+void AAStarController::DrawDebugGrid()
+{
+	if (!GetWorld()) return;
+
+	//FlushPersistentDebugLines(GetWorld());
+	//FlushDebugStrings(GetWorld());
+
+	for (int32 y = 0; y < GridHeight; y++)
+	{
+		for (int32 x = 0; x < GridWidth; x++)
+		{
+			int32 Index = XYToIndex(x, y);
+			if (!CostMap.IsValidIndex(Index)) continue;
+
+			// Convert cell to world position
+			FVector CellWorld = CellToWorld(FIntPoint(x, y));
+
+			// Draw a box for each cell
+			DrawDebugBox(
+				GetWorld(),
+				CellWorld,
+				FVector(CellSize * 0.5f, CellSize * 0.5f, 5.f),
+				CostMap[Index] >= 0 ? FColor::White : FColor::Red, // red for blocked
+				true,
+				-1.f
+			);
+
+			// Draw the cost value as text
+			DrawDebugString(
+				GetWorld(),
+				CellWorld + FVector(0, 0, 20.f), // offset a bit above the box
+				FString::Printf(TEXT("%d"), CostMap[Index]),
+				nullptr,
+				FColor::White,
+				-1.f,
+				false
+			);
+		}
+	}
 }
 
 bool AAStarController::IsWalkableIndex(int32 Index) const
@@ -108,28 +151,91 @@ TArray<int32> AAStarController::GetNeighborsIndices(int32 Index) const
 	return Out;
 }
 
-TArray<FIntPoint> AAStarController::FindPathBP(FIntPoint StartCell, FIntPoint GoalCell)
+TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVector& GoalWorld)
+{
+	// Convert to grid space
+	FIntPoint StartCell = WorldToCell(StartWorld);
+	FIntPoint GoalCell  = WorldToCell(GoalWorld);
+
+	// Check grid bounds + walkability
+	if (!IsInsideGrid(StartCell.X, StartCell.Y) || !IsInsideGrid(GoalCell.X, GoalCell.Y))
+	{
+		return {};
+	}
+	if (CostMap[XYToIndex(StartCell.X, StartCell.Y)] < 0 ||
+		CostMap[XYToIndex(GoalCell.X, GoalCell.Y)] < 0)
+	{
+		return {};
+	}
+
+	// Run the A* core (this part can stay private, taking FIntPoints)
+	TArray<FIntPoint> CellPath = RunAStar(StartCell, GoalCell);
+
+	// Convert back to world space
+	TArray<FVector> WorldPath;
+	for (const FIntPoint& Cell : CellPath)
+	{
+		WorldPath.Add(CellToWorld(Cell));
+	}
+
+	// Optional debug draw
+	if (bDrawDebugPath)
+	{
+		//FlushPersistentDebugLines(GetWorld());
+		//FlushDebugStrings(GetWorld());
+
+		DrawDebugGrid();
+		
+		for (int32 i = 0; i + 2 < WorldPath.Num(); i++)
+		{
+			DrawDebugLine(GetWorld(), WorldPath[i], WorldPath[i + 1], FColor::White, false, 5.f, 0, 5.f);
+		}
+
+		DrawDebugDirectionalArrow(
+			GetWorld(),
+			WorldPath[WorldPath.Num() - 2],
+			WorldPath.Last(),
+			20.f,             // arrow size
+			FColor::White,      // make it stand out
+			false,            // persistent lines?
+			5.f,              // life time
+			0,                // depth priority
+			5.f               // thickness
+		);
+	}
+
+	return WorldPath;
+}
+TArray<FIntPoint> AAStarController::RunAStar(const FIntPoint& StartCell, const FIntPoint& GoalCell)
 {
     TArray<FIntPoint> ResultPath;
 
-    // Validate inputs
+    // Validate cells in-bounds
     if (!IsInsideGrid(StartCell.X, StartCell.Y) || !IsInsideGrid(GoalCell.X, GoalCell.Y))
+    {
         return ResultPath;
+    }
 
-    const int StartIdx = XYToIndex(StartCell.X, StartCell.Y);
-    const int GoalIdx  = XYToIndex(GoalCell.X, GoalCell.Y);
+    const int32 StartIdx = XYToIndex(StartCell.X, StartCell.Y);
+    const int32 GoalIdx  = XYToIndex(GoalCell.X, GoalCell.Y);
 
-    if (!IsWalkableIndex(StartIdx) || !IsWalkableIndex(GoalIdx))
+    // Validate walkability (-1 means blocked)
+    if (!CostMap.IsValidIndex(StartIdx) || !CostMap.IsValidIndex(GoalIdx) ||
+        CostMap[StartIdx] < 0 || CostMap[GoalIdx] < 0)
+    {
         return ResultPath;
+    }
 
-    const int NumNodes = GridWidth * GridHeight;
+    const int32 NumNodes = GridWidth * GridHeight;
 
-    // Allocate/search buffers
+    // Search buffers
     TArray<FSearchNode> SearchNodes;
     SearchNodes.SetNum(NumNodes);
-    for (int i = 0; i < NumNodes; ++i)
+    for (int32 i = 0; i < NumNodes; ++i)
     {
         SearchNodes[i].G = TNumericLimits<float>::Max();
+        SearchNodes[i].H = 0.f;
+        SearchNodes[i].F = TNumericLimits<float>::Max();
         SearchNodes[i].Parent = -1;
         SearchNodes[i].bClosed = false;
     }
@@ -138,30 +244,29 @@ TArray<FIntPoint> AAStarController::FindPathBP(FIntPoint StartCell, FIntPoint Go
     OpenSet.ReservePos(NumNodes);
     OpenSet.Init(NumNodes);
 
-    auto Heuristic = [&](int A, int B)->float
+    // Octile heuristic (admissible/consistent for 8-way with DiagonalCost)
+    auto Heuristic = [&](int32 A, int32 B) -> float
     {
-        int Ax,Ay,Bx,By;
+        int32 Ax, Ay, Bx, By;
         IndexToXY(A, Ax, Ay);
         IndexToXY(B, Bx, By);
-        int const Dx = FMath::Abs(Ax - Bx);
-        int const Dy = FMath::Abs(Ay - By);
-    	
-        // Octile heuristic (good for 8-way)
-        const float F = float(FMath::Min(Dx, Dy));
-        return ( (float)(FMath::Max(Dx, Dy) - F) + DiagonalCost * F );
+        const int32 Dx = FMath::Abs(Ax - Bx);
+        const int32 Dy = FMath::Abs(Ay - By);
+        const float F  = float(FMath::Min(Dx, Dy));
+        return float(FMath::Max(Dx, Dy) - F) + DiagonalCost * F;
     };
 
-    // init start
+    // Initialize start
     SearchNodes[StartIdx].G = 0.f;
     SearchNodes[StartIdx].H = Heuristic(StartIdx, GoalIdx);
-    SearchNodes[StartIdx].F = SearchNodes[StartIdx].G + SearchNodes[StartIdx].H;
+    SearchNodes[StartIdx].F = SearchNodes[StartIdx].H; // G=0 so F=H
     OpenSet.Push(StartIdx, SearchNodes[StartIdx].F);
 
     bool bFound = false;
 
     while (!OpenSet.IsEmpty())
     {
-        int const Curr = OpenSet.PopMin();
+        const int32 Curr = OpenSet.PopMin();
         if (Curr == -1) break;
 
         if (Curr == GoalIdx)
@@ -170,16 +275,20 @@ TArray<FIntPoint> AAStarController::FindPathBP(FIntPoint StartCell, FIntPoint Go
             break;
         }
 
+        // Mark closed
         SearchNodes[Curr].bClosed = true;
 
-        // expand neighbors
-        TArray<int32> const Neighbors = GetNeighborsIndices(Curr);
-        for (int32 const Nb : Neighbors)
+        // Expand neighbors
+        const TArray<int32> Neighbors = GetNeighborsIndices(Curr);
+        for (const int32 Nb : Neighbors)
         {
-            if (SearchNodes[Nb].bClosed) continue;
+            if (SearchNodes[Nb].bClosed)
+                continue;
 
-            float const MoveCost = MovementCostBetween(Curr, Nb);
-            float const TentativeG = SearchNodes[Curr].G + MoveCost * ( (CostMap.IsValidIndex(Nb) ? (float)CostMap[Nb] : 1.f) );
+            // Terrain cost (>=1 for walkable; -1 means blocked, but we filtered earlier)
+            const float TerrainCost = (CostMap.IsValidIndex(Nb) ? FMath::Max(1, CostMap[Nb]) : 1);
+            const float MoveCost    = MovementCostBetween(Curr, Nb);
+            const float TentativeG  = SearchNodes[Curr].G + MoveCost * TerrainCost;
 
             if (TentativeG < SearchNodes[Nb].G)
             {
@@ -193,59 +302,44 @@ TArray<FIntPoint> AAStarController::FindPathBP(FIntPoint StartCell, FIntPoint Go
         }
     }
 
-    // Reconstruct path
+    // Reconstruct path (grid-space)
     if (bFound)
     {
         TArray<int32> PathIdx;
-        int Curr = GoalIdx;
-        while (Curr != -1)
+        PathIdx.Reserve(64);
+        int32 Trace = GoalIdx;
+        while (Trace != -1)
         {
-            PathIdx.Add(Curr);
-            Curr = SearchNodes[Curr].Parent;
+            PathIdx.Add(Trace);
+            Trace = SearchNodes[Trace].Parent;
         }
         Algo::Reverse(PathIdx);
 
-        // Convert to FIntPoint list
-        for (int Idx : PathIdx)
+        ResultPath.Reserve(PathIdx.Num());
+        for (const int32 Idx : PathIdx)
         {
-            int X, Y;
+            int32 X, Y;
             IndexToXY(Idx, X, Y);
             ResultPath.Add(FIntPoint(X, Y));
-        }
-
-        // Optional debug draw
-        if (bDrawDebugPath)
-        {
-            DrawDebugPath(PathIdx);
         }
     }
 
     return ResultPath;
 }
 
-void AAStarController::DrawDebugPath(const TArray<int32>& PathIndices) const
+// Convert world position into grid cell coordinates
+FIntPoint AAStarController::WorldToCell(const FVector& WorldLocation) const
 {
-	if (PathIndices.Num() < 2) return;
+	FVector Local = WorldLocation - GridOrigin;
+	int32 X = FMath::FloorToInt(Local.X / CellSize);
+	int32 Y = FMath::FloorToInt(Local.Y / CellSize);
+	return FIntPoint(X, Y);
+}
 
-	UWorld* W = GetWorld();
-	if (!W) return;
-
-	for (int i = 0; i < PathIndices.Num() - 1; ++i)
-	{
-		int32 A = PathIndices[i];
-		int32 B = PathIndices[i+1];
-		int Ax,Ay,Bx,By;
-		IndexToXY(A, Ax, Ay);
-		IndexToXY(B, Bx, By);
-
-		FVector LocA = GridOrigin + FVector(Ax * CellSize, Ay * CellSize, 50.f);
-		FVector LocB = GridOrigin + FVector(Bx * CellSize, By * CellSize, 50.f);
-
-		DrawDebugLine(W, LocA, LocB, DebugPathColor, true, 10.0f, 0, 4.f);
-		DrawDebugPoint(W, LocA, 8.f, DebugPathColor, true, 10.f);
-	}
-	// Draw last point
-	int Last = PathIndices.Last();
-	int LX, LY; IndexToXY(Last, LX, LY);
-	DrawDebugPoint(GetWorld(), GridOrigin + FVector(LX * CellSize, LY * CellSize, 50.f), 8.f, DebugPathColor, true, 10.f);
+// Convert grid cell back to world position (useful for moving units)
+FVector AAStarController::CellToWorld(const FIntPoint& Cell) const
+{
+	return GridOrigin + FVector(Cell.X * CellSize + CellSize * 0.5f, 
+								Cell.Y * CellSize + CellSize * 0.5f, 
+								0.f);
 }

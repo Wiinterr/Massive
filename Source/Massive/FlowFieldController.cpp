@@ -16,7 +16,7 @@ void AFlowFieldController::BeginPlay()
 void AFlowFieldController::GenerateGrid()
 {
 	CreateGrid();
-	DrawDebugGrid();
+	if (bDrawDebugPath) DrawDebugGrid();
 }
 
 void AFlowFieldController::CreateGrid()
@@ -136,7 +136,7 @@ void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 	ComputeIntegrationField();
 	ComputeDirections();
 	
-	DrawDebugGrid();
+	if (bDrawDebugPath) DrawDebugGrid();
 }
 
 void AFlowFieldController::ComputeIntegrationField()

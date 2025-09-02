@@ -27,6 +27,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
 	FIntPoint TargetIndex = FIntPoint(5, 5);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
+	bool bDrawDebugPath = true;
 	
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	void GenerateGrid();
