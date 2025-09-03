@@ -1,5 +1,6 @@
 #include "AStarController.h"
 #include "DrawDebugHelpers.h"
+#include "Components/LineBatchComponent.h"
 #include "Engine/World.h"
 
 // Sets default values
@@ -76,17 +77,6 @@ void AAStarController::DrawDebugGrid()
 				CostMap[Index] >= 0 ? FColor::White : FColor::Red, // red for blocked
 				true,
 				-1.f
-			);
-
-			// Draw the cost value as text
-			DrawDebugString(
-				GetWorld(),
-				CellWorld + FVector(0, 0, 20.f), // offset a bit above the box
-				FString::Printf(TEXT("%d"), CostMap[Index]),
-				nullptr,
-				FColor::White,
-				-1.f,
-				false
 			);
 		}
 	}
@@ -181,14 +171,20 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 	// Optional debug draw
 	if (bDrawDebugPath)
 	{
-		//FlushPersistentDebugLines(GetWorld());
-		//FlushDebugStrings(GetWorld());
-
-		DrawDebugGrid();
+		FlushDebugStrings(GetWorld());
 		
 		for (int32 i = 0; i + 2 < WorldPath.Num(); i++)
 		{
-			DrawDebugLine(GetWorld(), WorldPath[i], WorldPath[i + 1], FColor::White, false, 5.f, 0, 5.f);
+			DrawDebugLine(
+				GetWorld(),
+				WorldPath[i],
+				WorldPath[i + 1],
+				FColor::White,
+				false,
+				1.5f,
+				0,
+				6.f
+				);
 		}
 
 		DrawDebugDirectionalArrow(
@@ -196,16 +192,39 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 			WorldPath[WorldPath.Num() - 2],
 			WorldPath.Last(),
 			20.f,             // arrow size
-			FColor::White,      // make it stand out
+			FColor::White,    // make it stand out
 			false,            // persistent lines?
-			5.f,              // life time
+			1.5f,              // life time
 			0,                // depth priority
-			5.f               // thickness
+			6.f               // thickness
 		);
+		
+		// Draw updated cost values
+		for (int32 y = 0; y < GridHeight; y++)
+		{
+			for (int32 x = 0; x < GridWidth; x++)
+			{
+				int32 Index = XYToIndex(x, y);
+				if (!CostMap.IsValidIndex(Index)) continue;
+
+				FVector CellWorld = CellToWorld(FIntPoint(x, y));
+
+				DrawDebugString(
+					GetWorld(),
+					CellWorld + FVector(0, 0, 20.f),
+					FString::Printf(TEXT("%d"), CostMap[Index]),
+					nullptr,
+					FColor::White,
+					-1,
+					false
+				);
+			}
+		}
 	}
 
 	return WorldPath;
 }
+
 TArray<FIntPoint> AAStarController::RunAStar(const FIntPoint& StartCell, const FIntPoint& GoalCell)
 {
     TArray<FIntPoint> ResultPath;

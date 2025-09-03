@@ -14,14 +14,10 @@
   <component name="ChangeListManager">
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_AStarController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_AStarController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/7/NK/89RL6G7MFS80VREECG9HE6.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/7/NK/89RL6G7MFS80VREECG9HE6.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/A/JE/412SS79VG7I35AYK57FJR1.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/A/JE/412SS79VG7I35AYK57FJR1.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/EPathfindingType.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/EPathfindingType.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Massive/AStarController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/AStarController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/AStarController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/AStarController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/FlowFieldController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/FlowFieldController.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -187,7 +183,8 @@
       <workItem from="1755246584308" duration="5007000" />
       <workItem from="1755500997630" duration="5315000" />
       <workItem from="1756708288356" duration="7454000" />
-      <workItem from="1756796737936" duration="7998000" />
+      <workItem from="1756796737936" duration="8152000" />
+      <workItem from="1756881279064" duration="6005000" />
     </task>
     <servers />
   </component>
