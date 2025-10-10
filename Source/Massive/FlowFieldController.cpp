@@ -1,6 +1,7 @@
 #include "FlowFieldController.h"
 #include "DrawDebugHelpers.h"
 #include "PropertyAccess.h"
+#include "Kismet/GameplayStatics.h"
 
 AFlowFieldController::AFlowFieldController()
 {
@@ -87,6 +88,60 @@ void AFlowFieldController::DrawDebugGrid()
 			4.f
 			);
 	}
+}
+
+void AFlowFieldController::UpdateGrid(TSubclassOf<AActor> ObstacleClass)
+{
+	if (GridCells.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Grid not initialized!"));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No valid world context for UpdateGrid!"));
+		return;
+	}
+
+	// Clear any previous debug visuals if you use them
+	// for (auto& Cell : GridCells) DrawDebugBox(World, Cell.WorldPos, FVector(CellSize * 0.5f), FColor::White, false, 0.1f);
+
+	for (auto& Cell : GridCells)
+	{
+		// Randomly decide to increase cost (20% chance)
+		const float Chance = FMath::FRand();
+		if (Chance < 0.2f)
+		{
+			// Set a very high cost to make it avoided
+			Cell.Cost = 255;
+
+			// Optional: Spawn obstacle actor
+			if (ObstacleClass && World)
+			{
+				FVector SpawnLocation = Cell.WorldLocation;
+				FRotator SpawnRotation = FRotator::ZeroRotator;
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				AActor* SpawnedObstacle = World->SpawnActor<AActor>(ObstacleClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+				if (!SpawnedObstacle)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Failed to spawn obstacle at (%f, %f, %f)"), 
+						SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z);
+				}
+			}
+		}
+		else
+		{
+			// Reset to normal cost (optional)
+			Cell.Cost = 1;
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Grid updated — random obstacle costs applied."));
 }
 
 void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLocation)
