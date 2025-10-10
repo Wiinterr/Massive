@@ -35,6 +35,9 @@ public:
 	void GenerateGrid();
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
+	void UpdateGrid(const TSubclassOf<AActor> ObstacleClass);
+	
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	void SetTargetCellByWorldLocation(FVector const& WorldLocation);
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
@@ -42,7 +45,7 @@ public:
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	FVector GetFlowOfCell(FIntPoint index);
-	
+
 protected:
 	virtual void BeginPlay() override;
 
