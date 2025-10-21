@@ -115,7 +115,7 @@ void AFlowFieldController::UpdateGrid(TSubclassOf<AActor> ObstacleClass)
 		if (Chance < 0.2f)
 		{
 			// Set a very high cost to make it avoided
-			Cell.Cost = 255;
+			Cell.Cost = 500;
 
 			// Optional: Spawn obstacle actor
 			if (ObstacleClass && World)

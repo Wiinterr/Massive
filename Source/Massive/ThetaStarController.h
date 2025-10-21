@@ -30,6 +30,9 @@ public:
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="ThetaStar")
 	void GenerateCostMap();
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="ThetaStar")
+	void UpdateCostMap(const TSubclassOf<AActor> ObstacleClass);
 	
 	// Runtime options
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")

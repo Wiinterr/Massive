@@ -31,6 +31,9 @@ public:
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="AStar")
 	void GenerateCostMap();
 	
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="AStar")
+	void UpdateCostMap(const TSubclassOf<AActor> ObstacleClass);
+	
 	// Runtime options
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AStar")
 	bool bAllowDiagonal = true;

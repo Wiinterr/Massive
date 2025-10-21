@@ -82,6 +82,58 @@ void AThetaStarController::DrawDebugGrid()
 	}
 }
 
+void AThetaStarController::UpdateCostMap(TSubclassOf<AActor> ObstacleClass)
+{
+	if (CostMap.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cost map not initialized!"));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No valid world context for UpdateCostMap!"));
+		return;
+	}
+
+	for (int32 y = 0; y < GridHeight; y++)
+	{
+		for (int32 x = 0; x < GridWidth; x++)
+		{
+			int32 Index = XYToIndex(x, y);
+			if (!CostMap.IsValidIndex(Index)) continue;
+
+			const float Chance = FMath::FRand();
+			if (Chance < 0.2f) // 20% chance to spawn obstacle
+			{
+				CostMap[Index] = -1; // blocked
+
+				// Optional obstacle spawn
+				if (ObstacleClass && World)
+				{
+					FVector SpawnLocation = CellToWorld(FIntPoint(x, y));
+					FRotator SpawnRotation = FRotator::ZeroRotator;
+					FActorSpawnParameters Params;
+					Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+					AActor* Obstacle = World->SpawnActor<AActor>(ObstacleClass, SpawnLocation, SpawnRotation, Params);
+					if (!Obstacle)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Failed to spawn obstacle at %d,%d"), x, y);
+					}
+				}
+			}
+			else
+			{
+				CostMap[Index] = 1; // default cost
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Theta* cost map updated — random obstacles placed."));
+}
+
 bool AThetaStarController::IsWalkableIndex(int32 Index) const
 {
 	if (Index < 0 || Index >= CostMap.Num()) return false;

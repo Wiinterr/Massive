@@ -82,6 +82,58 @@ void AAStarController::DrawDebugGrid()
 	}
 }
 
+void AAStarController::UpdateCostMap(TSubclassOf<AActor> ObstacleClass)
+{
+	if (CostMap.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cost map not initialized!"));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No valid world context for UpdateCostMap!"));
+		return;
+	}
+
+	for (int32 y = 0; y < GridHeight; y++)
+	{
+		for (int32 x = 0; x < GridWidth; x++)
+		{
+			int32 Index = XYToIndex(x, y);
+			if (!CostMap.IsValidIndex(Index)) continue;
+
+			const float Chance = FMath::FRand();
+			if (Chance < 0.2f) // 20% chance to spawn obstacle
+			{
+				CostMap[Index] = -1; // blocked
+
+				// Optional obstacle spawn
+				if (ObstacleClass && World)
+				{
+					FVector SpawnLocation = CellToWorld(FIntPoint(x, y));
+					FRotator SpawnRotation = FRotator::ZeroRotator;
+					FActorSpawnParameters Params;
+					Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+					AActor* Obstacle = World->SpawnActor<AActor>(ObstacleClass, SpawnLocation, SpawnRotation, Params);
+					if (!Obstacle)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Failed to spawn obstacle at %d,%d"), x, y);
+					}
+				}
+			}
+			else
+			{
+				CostMap[Index] = 1; // default cost
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("A* cost map updated — random obstacles placed."));
+}
+
 bool AAStarController::IsWalkableIndex(int32 Index) const
 {
 	if (Index < 0 || Index >= CostMap.Num()) return false;
@@ -118,21 +170,23 @@ TArray<int32> AAStarController::GetNeighborsIndices(int32 Index) const
 		int NX = X + Offsets[i][0];
 		int NY = Y + Offsets[i][1];
 
-		if (!IsInsideGrid(NX, NY)) continue;
+		if (!IsInsideGrid(NX, NY))
+			continue;
 
 		int NIdx = XYToIndex(NX, NY);
-		if (!IsWalkableIndex(NIdx)) continue;
+		if (!IsWalkableIndex(NIdx))
+			continue;
 
-		// Prevent corner cutting if enabled and this neighbor is diagonal
-		if (bPreventDiagonalCutting && (FMath::Abs(Offsets[i][0]) + FMath::Abs(Offsets[i][1]) == 2))
+		// --- prevent diagonal corner cutting more strictly ---
+		if (FMath::Abs(Offsets[i][0]) + FMath::Abs(Offsets[i][1]) == 2)
 		{
-			// Check the two adjacent cardinal tiles
+			// Check the two adjacent cardinal neighbors
 			int AIdx = XYToIndex(X + Offsets[i][0], Y);
 			int BIdx = XYToIndex(X, Y + Offsets[i][1]);
+
+			// If either adjacent cell is blocked, this diagonal move is invalid
 			if (!IsWalkableIndex(AIdx) || !IsWalkableIndex(BIdx))
-			{
 				continue;
-			}
 		}
 
 		Out.Add(NIdx);
