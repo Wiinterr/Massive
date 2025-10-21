@@ -267,25 +267,49 @@ FFlowFieldCell* AFlowFieldController::GetCellAt(int32 const& x, int32 const& y)
 	return &GridCells[y * GridWidth + x];
 }
 
-TArray<FFlowFieldCell*> AFlowFieldController::GetCellNeighbors(FFlowFieldCell const& Cell)
+TArray<FFlowFieldCell*> AFlowFieldController::GetCellNeighbors(const FFlowFieldCell& Cell)
 {
 	TArray<FFlowFieldCell*> Neighbors;
 
 	const int32 Offsets[8][2] =
 	{
-		{0, 1}, {0, -1}, {-1, 0}, {1, 0},	// Cardinal
-		{-1, -1}, {1, -1}, {1, 1}, {-1, 1}	// Diagonal
+		{0, 1}, {0, -1}, {-1, 0}, {1, 0},   // Cardinal
+		{-1, -1}, {1, -1}, {1, 1}, {-1, 1}  // Diagonal
 	};
 
-	for (const auto& Offset : Offsets)
+	for (int32 i = 0; i < 8; ++i)
 	{
-		int32 NeighborX = Cell.GridX + Offset[0];
-		int32 NeighborY = Cell.GridY + Offset[1];
+		int32 NX = Cell.GridX + Offsets[i][0];
+		int32 NY = Cell.GridY + Offsets[i][1];
 
-		if (FFlowFieldCell* Neighbor = GetCellAt(NeighborX, NeighborY))
+		FFlowFieldCell* Neighbor = GetCellAt(NX, NY);
+		if (!Neighbor) continue;
+
+		// Skip any obstacle cells directly
+		if (Neighbor->Cost >= 500)
+			continue;
+
+		// --- prevent corner cutting ---
+		// if diagonal, make sure both adjacent cardinal directions are clear
+		if (FMath::Abs(Offsets[i][0]) + FMath::Abs(Offsets[i][1]) == 2)
 		{
-			Neighbors.Add(Neighbor);
+			int32 AdjacentAX = Cell.GridX + Offsets[i][0];
+			int32 AdjacentAY = Cell.GridY;
+			int32 AdjacentBX = Cell.GridX;
+			int32 AdjacentBY = Cell.GridY + Offsets[i][1];
+
+			FFlowFieldCell* AdjacentA = GetCellAt(AdjacentAX, AdjacentAY);
+			FFlowFieldCell* AdjacentB = GetCellAt(AdjacentBX, AdjacentBY);
+
+			if ((AdjacentA && AdjacentA->Cost >= 500) ||
+				(AdjacentB && AdjacentB->Cost >= 500))
+			{
+				// skip diagonal if side is blocked
+				continue;
+			}
 		}
+
+		Neighbors.Add(Neighbor);
 	}
 
 	return Neighbors;
