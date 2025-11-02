@@ -2,6 +2,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/LineBatchComponent.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AAStarController::AAStarController()
@@ -15,6 +16,17 @@ AAStarController::AAStarController()
 void AAStarController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!GridManager)
+	{
+		GridManager = Cast<AGridManager>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), AGridManager::StaticClass())
+		);
+	}
+
+	if (!GridManager)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AStarController: Could not find GridManager!"));
+	}
 }
 
 // Called every frame
@@ -22,122 +34,6 @@ void AAStarController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-void AAStarController::GenerateCostMap()
-{
-	// If grid origin is zero, derive it from actor location to mimic your FlowField behavior
-	if (GridOrigin.IsZero())
-	{
-		// centre grid around actor (same math as your FlowField CreateGrid())
-		const float GridOffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
-		const float GridOffsetY = (GridHeight * CellSize) * 0.5f - CellSize * 0.5f;
-		GridOrigin = GetActorLocation() - FVector(GridOffsetX, GridOffsetY, 0.f);
-	}
-
-	// If cost map empty, create defaults
-	if (CostMap.Num() != GridWidth * GridHeight)
-	{
-		CreateDefaultCostMap();
-	}
-	
-	if (bDrawDebugPath) DrawDebugGrid();
-}
-
-void AAStarController::CreateDefaultCostMap(int32 InGridWidth, int32 InGridHeight)
-{
-	if (InGridWidth > 0) GridWidth = InGridWidth;
-	if (InGridHeight > 0) GridHeight = InGridHeight;
-
-	CostMap.Init(1, GridWidth * GridHeight); // default cost 1, walkable
-}
-
-void AAStarController::DrawDebugGrid()
-{
-	if (!GetWorld()) return;
-
-	//FlushPersistentDebugLines(GetWorld());
-	//FlushDebugStrings(GetWorld());
-
-	for (int32 y = 0; y < GridHeight; y++)
-	{
-		for (int32 x = 0; x < GridWidth; x++)
-		{
-			int32 Index = XYToIndex(x, y);
-			if (!CostMap.IsValidIndex(Index)) continue;
-
-			// Convert cell to world position
-			FVector CellWorld = CellToWorld(FIntPoint(x, y));
-
-			// Draw a box for each cell
-			DrawDebugBox(
-				GetWorld(),
-				CellWorld,
-				FVector(CellSize * 0.5f, CellSize * 0.5f, 5.f),
-				CostMap[Index] >= 0 ? FColor::White : FColor::Red, // red for blocked
-				true,
-				-1.f
-			);
-		}
-	}
-}
-
-void AAStarController::UpdateCostMap(TSubclassOf<AActor> ObstacleClass)
-{
-	if (CostMap.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cost map not initialized!"));
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No valid world context for UpdateCostMap!"));
-		return;
-	}
-
-	for (int32 y = 0; y < GridHeight; y++)
-	{
-		for (int32 x = 0; x < GridWidth; x++)
-		{
-			int32 Index = XYToIndex(x, y);
-			if (!CostMap.IsValidIndex(Index)) continue;
-
-			const float Chance = FMath::FRand();
-			if (Chance < 0.2f) // 20% chance to spawn obstacle
-			{
-				CostMap[Index] = -1; // blocked
-
-				// Optional obstacle spawn
-				if (ObstacleClass && World)
-				{
-					FVector SpawnLocation = CellToWorld(FIntPoint(x, y));
-					FRotator SpawnRotation = FRotator::ZeroRotator;
-					FActorSpawnParameters Params;
-					Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-					AActor* Obstacle = World->SpawnActor<AActor>(ObstacleClass, SpawnLocation, SpawnRotation, Params);
-					if (!Obstacle)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Failed to spawn obstacle at %d,%d"), x, y);
-					}
-				}
-			}
-			else
-			{
-				CostMap[Index] = 1; // default cost
-			}
-		}
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("A* cost map updated — random obstacles placed."));
-}
-
-bool AAStarController::IsWalkableIndex(int32 Index) const
-{
-	if (Index < 0 || Index >= CostMap.Num()) return false;
-	return CostMap[Index] >= 0;
 }
 
 float AAStarController::MovementCostBetween(int32 AIndex, int32 BIndex) const
@@ -153,61 +49,19 @@ float AAStarController::MovementCostBetween(int32 AIndex, int32 BIndex) const
 	return DiagonalCost;
 }
 
-TArray<int32> AAStarController::GetNeighborsIndices(int32 Index) const
-{
-	TArray<int32> Out;
-	int X, Y;
-	IndexToXY(Index, X, Y);
-
-	const int Offsets[8][2] =
-	{
-		{0, 1}, {0, -1}, {1, 0}, {-1, 0},
-		{1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-	};
-
-	for (int i = 0; i < (bAllowDiagonal ? 8 : 4); ++i)
-	{
-		int NX = X + Offsets[i][0];
-		int NY = Y + Offsets[i][1];
-
-		if (!IsInsideGrid(NX, NY))
-			continue;
-
-		int NIdx = XYToIndex(NX, NY);
-		if (!IsWalkableIndex(NIdx))
-			continue;
-
-		// --- prevent diagonal corner cutting more strictly ---
-		if (FMath::Abs(Offsets[i][0]) + FMath::Abs(Offsets[i][1]) == 2)
-		{
-			// Check the two adjacent cardinal neighbors
-			int AIdx = XYToIndex(X + Offsets[i][0], Y);
-			int BIdx = XYToIndex(X, Y + Offsets[i][1]);
-
-			// If either adjacent cell is blocked, this diagonal move is invalid
-			if (!IsWalkableIndex(AIdx) || !IsWalkableIndex(BIdx))
-				continue;
-		}
-
-		Out.Add(NIdx);
-	}
-
-	return Out;
-}
-
 TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVector& GoalWorld)
 {
 	// Convert to grid space
-	FIntPoint StartCell = WorldToCell(StartWorld);
-	FIntPoint GoalCell  = WorldToCell(GoalWorld);
+	FIntPoint StartCell = GridManager->WorldToCell(StartWorld);
+	FIntPoint GoalCell  = GridManager->WorldToCell(GoalWorld);
 
 	// Check grid bounds + walkability
-	if (!IsInsideGrid(StartCell.X, StartCell.Y) || !IsInsideGrid(GoalCell.X, GoalCell.Y))
+	if (!GridManager->IsInside(StartCell.X, StartCell.Y) || !GridManager->IsInside(GoalCell.X, GoalCell.Y))
 	{
 		return {};
 	}
-	if (CostMap[XYToIndex(StartCell.X, StartCell.Y)] < 0 ||
-		CostMap[XYToIndex(GoalCell.X, GoalCell.Y)] < 0)
+	if (GridManager->Grid[GridManager->XYToIndex(StartCell.X, StartCell.Y)].Cost < 0 ||
+		GridManager->Grid[GridManager->XYToIndex(GoalCell.X, GoalCell.Y)].Cost < 0)
 	{
 		return {};
 	}
@@ -219,11 +73,11 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 	TArray<FVector> WorldPath;
 	for (const FIntPoint& Cell : CellPath)
 	{
-		WorldPath.Add(CellToWorld(Cell));
+		WorldPath.Add(GridManager->CellToWorld(Cell));
 	}
 
 	// Optional debug draw
-	if (bDrawDebugPath)
+	if (GridManager->bDrawDebug)
 	{
 		FlushDebugStrings(GetWorld());
 		
@@ -254,19 +108,19 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 		);
 		
 		// Draw updated cost values
-		for (int32 y = 0; y < GridHeight; y++)
+		for (int32 y = 0; y < GridManager->GridHeight; y++)
 		{
-			for (int32 x = 0; x < GridWidth; x++)
+			for (int32 x = 0; x < GridManager->GridWidth; x++)
 			{
-				int32 Index = XYToIndex(x, y);
-				if (!CostMap.IsValidIndex(Index)) continue;
+				int32 Index = GridManager->XYToIndex(x, y);
+				if (!GridManager->Grid.IsValidIndex(Index)) continue;
 
-				FVector CellWorld = CellToWorld(FIntPoint(x, y));
+				FVector CellWorld = GridManager->CellToWorld(FIntPoint(x, y));
 
 				DrawDebugString(
 					GetWorld(),
 					CellWorld + FVector(0, 0, 20.f),
-					FString::Printf(TEXT("%d"), CostMap[Index]),
+					FString::Printf(TEXT("%d"), GridManager->Grid[Index].Cost),
 					nullptr,
 					FColor::White,
 					-1,
@@ -284,22 +138,22 @@ TArray<FIntPoint> AAStarController::RunAStar(const FIntPoint& StartCell, const F
     TArray<FIntPoint> ResultPath;
 
     // Validate cells in-bounds
-    if (!IsInsideGrid(StartCell.X, StartCell.Y) || !IsInsideGrid(GoalCell.X, GoalCell.Y))
+    if (!GridManager->IsInside(StartCell.X, StartCell.Y) || !GridManager->IsInside(GoalCell.X, GoalCell.Y))
     {
         return ResultPath;
     }
 
-    const int32 StartIdx = XYToIndex(StartCell.X, StartCell.Y);
-    const int32 GoalIdx  = XYToIndex(GoalCell.X, GoalCell.Y);
+    const int32 StartIdx = GridManager->XYToIndex(StartCell.X, StartCell.Y);
+    const int32 GoalIdx  = GridManager->XYToIndex(GoalCell.X, GoalCell.Y);
 
     // Validate walkability (-1 means blocked)
-    if (!CostMap.IsValidIndex(StartIdx) || !CostMap.IsValidIndex(GoalIdx) ||
-        CostMap[StartIdx] < 0 || CostMap[GoalIdx] < 0)
+    if (!GridManager->Grid.IsValidIndex(StartIdx) || !GridManager->Grid.IsValidIndex(GoalIdx) ||
+        GridManager->Grid[StartIdx].Cost < 0 || GridManager->Grid[GoalIdx].Cost < 0)
     {
         return ResultPath;
     }
 
-    const int32 NumNodes = GridWidth * GridHeight;
+    const int32 NumNodes = GridManager->GridWidth * GridManager->GridHeight;
 
     // Search buffers
     TArray<FSearchNode> SearchNodes;
@@ -351,15 +205,19 @@ TArray<FIntPoint> AAStarController::RunAStar(const FIntPoint& StartCell, const F
         // Mark closed
         SearchNodes[Curr].bClosed = true;
 
+    	int32 CurrX, CurrY;
+    	IndexToXY(Curr, CurrX, CurrY);
+    	
         // Expand neighbors
-        const TArray<int32> Neighbors = GetNeighborsIndices(Curr);
-        for (const int32 Nb : Neighbors)
+        const TArray<const FGridCell*> Neighbors = GridManager->GetNeighbors(CurrX, CurrY);
+        for (const FGridCell* NbCell : Neighbors)
         {
-            if (SearchNodes[Nb].bClosed)
-                continue;
+			const int32 Nb = GridManager->XYToIndex(NbCell->X, NbCell->Y);
+        	
+            if (SearchNodes[Nb].bClosed) continue;
 
             // Terrain cost (>=1 for walkable; -1 means blocked, but we filtered earlier)
-            const float TerrainCost = (CostMap.IsValidIndex(Nb) ? FMath::Max(1, CostMap[Nb]) : 1);
+            const float TerrainCost = (GridManager->Grid.IsValidIndex(Nb) ? FMath::Max(1, GridManager->Grid[Nb].Cost) : 1);
             const float MoveCost    = MovementCostBetween(Curr, Nb);
             const float TentativeG  = SearchNodes[Curr].G + MoveCost * TerrainCost;
 
@@ -398,21 +256,4 @@ TArray<FIntPoint> AAStarController::RunAStar(const FIntPoint& StartCell, const F
     }
 
     return ResultPath;
-}
-
-// Convert world position into grid cell coordinates
-FIntPoint AAStarController::WorldToCell(const FVector& WorldLocation) const
-{
-	FVector Local = WorldLocation - GridOrigin;
-	int32 X = FMath::FloorToInt(Local.X / CellSize);
-	int32 Y = FMath::FloorToInt(Local.Y / CellSize);
-	return FIntPoint(X, Y);
-}
-
-// Convert grid cell back to world position (useful for moving units)
-FVector AAStarController::CellToWorld(const FIntPoint& Cell) const
-{
-	return GridOrigin + FVector(Cell.X * CellSize + CellSize * 0.5f, 
-								Cell.Y * CellSize + CellSize * 0.5f, 
-								0.f);
 }

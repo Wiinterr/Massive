@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GridManager.h"
 #include "GameFramework/Actor.h"
 #include "ThetaStarController.generated.h"
 
@@ -12,44 +13,11 @@ class MASSIVE_API AThetaStarController : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AThetaStarController();
+
+	AGridManager* GridManager;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	int32 GridWidth = 30;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	int32 GridHeight = 30;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	float CellSize = 100.f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	FVector GridOrigin = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	TArray<int32> CostMap;
-
-	UFUNCTION(CallInEditor, BlueprintCallable, Category="ThetaStar")
-	void GenerateCostMap();
-
-	UFUNCTION(CallInEditor, BlueprintCallable, Category="ThetaStar")
-	void UpdateCostMap(const TSubclassOf<AActor> ObstacleClass);
-	
-	// Runtime options
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	bool bAllowDiagonal = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	bool bPreventDiagonalCutting = true;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar", meta=(ClampMin="1.0", ClampMax="2.0"))
 	float DiagonalCost = 1.41421356237f;
-
-	// Debug
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ThetaStar")
-	bool bDrawDebugPath = true;
-
-	UFUNCTION(CallInEditor, BlueprintCallable, Category="ThetaStar")
-	void CreateDefaultCostMap(int32 InGridWidth = -1, int32 InGridHeight = -1);
 
 	UFUNCTION(BlueprintCallable, Category="ThetaStar")
 	TArray<FVector> FindPath(const FVector& StartWorld, const FVector& GoalWorld);
@@ -66,17 +34,12 @@ private:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	FORCEINLINE int32 XYToIndex(int32 X, int32 Y) const { return Y * GridWidth + X; }
-	FORCEINLINE void IndexToXY(int32 Index, int32& OutX, int32& OutY) const { OutY = Index / GridWidth; OutX = Index % GridWidth; }
-	bool IsInsideGrid(int32 X, int32 Y) const { return X >= 0 && X < GridWidth && Y >= 0 && Y < GridHeight; }
-	bool IsWalkableIndex(int32 Index) const;
-	float MovementCostBetween(int32 AIndex, int32 BIndex) const;
-	TArray<int32> GetNeighborsIndices(int32 Index) const;
+	FORCEINLINE void IndexToXY(int32 Index, int32& OutX, int32& OutY) const
+	{
+		OutY = Index / GridManager->GridWidth; OutX = Index % GridManager->GridWidth;
+	}
 
-	FIntPoint WorldToCell(const FVector& WorldLocation) const;
-	FVector CellToWorld(const FIntPoint& Cell) const;
-	
-	void DrawDebugGrid();
+	float MovementCostBetween(int32 AIndex, int32 BIndex) const;
 
     // Open set (binary heap with positions for decrease-key)
     struct FHeapItem

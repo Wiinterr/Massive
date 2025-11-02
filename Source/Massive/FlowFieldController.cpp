@@ -1,5 +1,6 @@
 #include "FlowFieldController.h"
 #include "DrawDebugHelpers.h"
+#include "GridManager.h"
 #include "PropertyAccess.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -11,142 +12,22 @@ AFlowFieldController::AFlowFieldController()
 void AFlowFieldController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-}
-
-void AFlowFieldController::GenerateGrid()
-{
-	CreateGrid();
-	if (bDrawDebugPath) DrawDebugGrid();
-}
-
-void AFlowFieldController::CreateGrid()
-{
-	if(GridWidth <= 0 || GridHeight <= 0 || CellSize <= 0)
+	if (!GridManager)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid grid parameters"));
-		return;
-	}
-	
-	GridCells.Empty();
-	
-	float const GridOffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
-	float const GridOffsetY = (GridHeight * CellSize) * 0.5f - CellSize * 0.5f;
-
-	for (int y{}; y < GridHeight; y++)
-	{
-		for (int x{}; x < GridWidth; x++)
-		{
-			FVector const CellLocation = GridOrigin +
-				FVector(x * CellSize - GridOffsetX, y * CellSize - GridOffsetY, 0.0f);
-
-			FFlowFieldCell Cell;
-			Cell.GridX = x;
-			Cell.GridY = y;
-			Cell.WorldLocation = CellLocation;
-
-			GridCells.Add(Cell);
-		}
-	}
-}
-
-void AFlowFieldController::DrawDebugGrid()
-{
-	FlushPersistentDebugLines(GetWorld());
-	FlushDebugStrings(GetWorld());
-	
-	for (const FFlowFieldCell& Cell : GridCells)
-	{
-		DrawDebugBox(
-			GetWorld(),
-			Cell.WorldLocation,
-			FVector(CellSize * 0.5, CellSize * 0.5, 5.0f),
-			FColor::White,
-			true,
-			5.f
-			);
-
-		DrawDebugString(
-			GetWorld(),
-			Cell.WorldLocation,
-			FString::Printf(TEXT("%.2f"), Cell.IntegrationValue),
-			nullptr,
-			FColor::White,
-			-1.f,
-			false
-			);
-
-		DrawDebugDirectionalArrow(
-			GetWorld(),
-			Cell.WorldLocation,
-			Cell.WorldLocation + Cell.FlowDirection * 30.f,
-			10.f,
-			FColor::White,
-			true,
-			5.f,
-			0,
-			4.f
-			);
-	}
-}
-
-void AFlowFieldController::UpdateGrid(TSubclassOf<AActor> ObstacleClass)
-{
-	if (GridCells.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Grid not initialized!"));
-		return;
+		GridManager = Cast<AGridManager>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), AGridManager::StaticClass())
+		);
 	}
 
-	UWorld* World = GetWorld();
-	if (!World)
+	if (!GridManager)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No valid world context for UpdateGrid!"));
-		return;
+		UE_LOG(LogTemp, Error, TEXT("FlowFieldController: Could not find GridManager!"));
 	}
-
-	// Clear any previous debug visuals if you use them
-	// for (auto& Cell : GridCells) DrawDebugBox(World, Cell.WorldPos, FVector(CellSize * 0.5f), FColor::White, false, 0.1f);
-
-	for (auto& Cell : GridCells)
-	{
-		// Randomly decide to increase cost (20% chance)
-		const float Chance = FMath::FRand();
-		if (Chance < 0.2f)
-		{
-			// Set a very high cost to make it avoided
-			Cell.Cost = 500;
-
-			// Optional: Spawn obstacle actor
-			if (ObstacleClass && World)
-			{
-				FVector SpawnLocation = Cell.WorldLocation;
-				FRotator SpawnRotation = FRotator::ZeroRotator;
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-				AActor* SpawnedObstacle = World->SpawnActor<AActor>(ObstacleClass, SpawnLocation, SpawnRotation, SpawnParams);
-
-				if (!SpawnedObstacle)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Failed to spawn obstacle at (%f, %f, %f)"), 
-						SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z);
-				}
-			}
-		}
-		else
-		{
-			// Reset to normal cost (optional)
-			Cell.Cost = 1;
-		}
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Grid updated — random obstacle costs applied."));
 }
 
 void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLocation)
 {
-	if (GridCells.Num() == 0) return;
+	if (GridManager->Grid.Num() == 0) return;
 
 	TargetIndex = WorldLocationToIndex(WorldLocation);
 	
@@ -155,6 +36,11 @@ void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLoca
 
 FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocation)
 {
+	const FVector GridOrigin = GridManager->GridOrigin;
+	const int32 GridWidth = GridManager->GridWidth;
+	const int32 GridHeight = GridManager->GridHeight;
+	const int32 CellSize = GridManager->CellSize;
+	
 	FVector const LocalPos = WorldLocation - GridOrigin;
 
 	float const OffsetX = (GridWidth * CellSize) * 0.5f - CellSize * 0.5f;
@@ -174,8 +60,8 @@ FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocatio
 
 FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
 {
-	int32 const FlattenedIndex = index.Y * GridWidth + index.X;
-	return GridCells[FlattenedIndex].FlowDirection;
+	int32 const FlattenedIndex = index.Y * GridManager->GridWidth + index.X;
+	return GridManager->Grid[FlattenedIndex].FlowDirection;
 }
 
 
@@ -183,7 +69,7 @@ void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 {
 	TargetIndex = FIntPoint(x, y);
 
-	for (FFlowFieldCell& Cell : GridCells)
+	for (FGridCell& Cell : GridManager->Grid)
 	{
 		Cell.IntegrationValue = TNumericLimits<int32>::Max();
 	}
@@ -191,26 +77,38 @@ void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 	ComputeIntegrationField();
 	ComputeDirections();
 	
-	if (bDrawDebugPath) DrawDebugGrid();
+	//if (bDrawDebugPath) DrawDebugGrid();
 }
 
 void AFlowFieldController::ComputeIntegrationField()
 {
-	TQueue<FFlowFieldCell*> CellQueue;
+	if (!GridManager) return;
 
-	FFlowFieldCell* TargetCell = GetCellAt(TargetIndex.X, TargetIndex.Y);
-	if (!TargetCell) return;
+	// Reset all integration values
+	for (FGridCell& Cell : GridManager->Grid)
+	{
+		Cell.IntegrationValue = FLT_MAX;
+	}
+	
+	FIntPoint TargetCellIndex = TargetIndex; // Assuming TargetIndex is valid
+	int32 TargetIdx = GridManager->XYToIndex(TargetCellIndex.X, TargetCellIndex.Y);
+	if (!GridManager->IsInside(TargetCellIndex.X, TargetCellIndex.Y)) return;
 
-	TargetCell->IntegrationValue = 0;
+	FGridCell* TargetCell = &GridManager->Grid[TargetIdx];
+	TargetCell->IntegrationValue = 0.f;
+	
+	TQueue<FGridCell*> CellQueue;
 	CellQueue.Enqueue(TargetCell);
 
 	while (!CellQueue.IsEmpty())
 	{
-		FFlowFieldCell* Current;
+		FGridCell* Current;
 		CellQueue.Dequeue(Current);
 
-		for (FFlowFieldCell* Neighbor : GetCellNeighbors(*Current))
+		for (const FGridCell* NeighborConst : GridManager->GetNeighbors(Current->X, Current->Y))
 		{
+			FGridCell* Neighbor = const_cast<FGridCell*>(NeighborConst); // safe, GridManager owns the data
+			
 			FVector2D const DirToTarget = FVector2D(TargetCell->WorldLocation - Neighbor->WorldLocation).GetSafeNormal();
 			float const Angle = FMath::Atan2(DirToTarget.Y, DirToTarget.X);
 			float const Snapped = FMath::RoundToFloat(Angle / (PI / 2.f)) * (PI / 2.f);
@@ -232,14 +130,16 @@ void AFlowFieldController::ComputeIntegrationField()
 
 void AFlowFieldController::ComputeDirections()
 {
-	for (FFlowFieldCell& Cell : GridCells)
+	if (GridManager->bDrawDebug) FlushPersistentDebugLines(GetWorld());
+	
+	for (FGridCell& Cell : GridManager->Grid)
 	{
-		TArray<FFlowFieldCell*> Neighbors = GetCellNeighbors(Cell);
+		TArray<const FGridCell*> Neighbors = GridManager->GetNeighbors(Cell.X, Cell.Y);
 
-		FFlowFieldCell* BestNeighbor = nullptr;
+		const FGridCell* BestNeighbor = nullptr;
 		float BestCost = Cell.IntegrationValue;
 
-		for (FFlowFieldCell* Neighbor : Neighbors)
+		for (const FGridCell* Neighbor : Neighbors)
 		{
 			if (Neighbor->IntegrationValue < BestCost)
 			{
@@ -252,66 +152,27 @@ void AFlowFieldController::ComputeDirections()
 		{
 			FVector const Direction = (BestNeighbor->WorldLocation - Cell.WorldLocation).GetSafeNormal();
 			Cell.FlowDirection = Direction;
+
+			// ---- Debug arrows ----
+			if (GridManager->bDrawDebug)
+			{
+				DrawDebugDirectionalArrow(
+					GetWorld(),
+					Cell.WorldLocation,
+					Cell.WorldLocation + Direction * 40.f,   // arrow length
+					10.f,                              // arrow size
+					FColor::Yellow,
+					true,                               // persistent
+					0.f,
+					0,
+					3.f                                 // thickness
+				);
+			}
 		}
 		else
 		{
 			Cell.FlowDirection = FVector::ZeroVector;
 		}
 	}
-}
-
-FFlowFieldCell* AFlowFieldController::GetCellAt(int32 const& x, int32 const& y)
-{
-	if (x < 0 || x >= GridWidth || y < 0 || y >= GridHeight) return nullptr;
-	
-	return &GridCells[y * GridWidth + x];
-}
-
-TArray<FFlowFieldCell*> AFlowFieldController::GetCellNeighbors(const FFlowFieldCell& Cell)
-{
-	TArray<FFlowFieldCell*> Neighbors;
-
-	const int32 Offsets[8][2] =
-	{
-		{0, 1}, {0, -1}, {-1, 0}, {1, 0},   // Cardinal
-		{-1, -1}, {1, -1}, {1, 1}, {-1, 1}  // Diagonal
-	};
-
-	for (int32 i = 0; i < 8; ++i)
-	{
-		int32 NX = Cell.GridX + Offsets[i][0];
-		int32 NY = Cell.GridY + Offsets[i][1];
-
-		FFlowFieldCell* Neighbor = GetCellAt(NX, NY);
-		if (!Neighbor) continue;
-
-		// Skip any obstacle cells directly
-		if (Neighbor->Cost >= 500)
-			continue;
-
-		// --- prevent corner cutting ---
-		// if diagonal, make sure both adjacent cardinal directions are clear
-		if (FMath::Abs(Offsets[i][0]) + FMath::Abs(Offsets[i][1]) == 2)
-		{
-			int32 AdjacentAX = Cell.GridX + Offsets[i][0];
-			int32 AdjacentAY = Cell.GridY;
-			int32 AdjacentBX = Cell.GridX;
-			int32 AdjacentBY = Cell.GridY + Offsets[i][1];
-
-			FFlowFieldCell* AdjacentA = GetCellAt(AdjacentAX, AdjacentAY);
-			FFlowFieldCell* AdjacentB = GetCellAt(AdjacentBX, AdjacentBY);
-
-			if ((AdjacentA && AdjacentA->Cost >= 500) ||
-				(AdjacentB && AdjacentB->Cost >= 500))
-			{
-				// skip diagonal if side is blocked
-				continue;
-			}
-		}
-
-		Neighbors.Add(Neighbor);
-	}
-
-	return Neighbors;
 }
 

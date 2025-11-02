@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GridManager.h"
 #include "GameFramework/Actor.h"
-#include "FlowFieldTypes.h"
 #include "FlowFieldController.generated.h"
 
 UCLASS()
@@ -13,15 +13,8 @@ class MASSIVE_API AFlowFieldController : public AActor
 public:
 	AFlowFieldController();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
-	int32 GridWidth = 30;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
-	int32 GridHeight = 30;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
-	float CellSize = 100.f;
-
+	AGridManager* GridManager;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
 	float AnglePenalty = 1.f;
 	
@@ -29,13 +22,7 @@ public:
 	FIntPoint TargetIndex = FIntPoint(5, 5);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="FlowField")
-	bool bDrawDebugPath = true;
-	
-	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
-	void GenerateGrid();
-
-	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
-	void UpdateGrid(const TSubclassOf<AActor> ObstacleClass);
+	bool bDrawDebugPath = false;
 	
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	void SetTargetCellByWorldLocation(FVector const& WorldLocation);
@@ -50,16 +37,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	FVector GridOrigin;
-	TArray<FFlowFieldCell> GridCells;
-	
-	void CreateGrid();
-	void DrawDebugGrid();
 	
 	void SetTargetCell(int32 const& x, int32 const& y);
 	void ComputeIntegrationField();
 	void ComputeDirections();
-	TArray<FFlowFieldCell*> GetCellNeighbors(FFlowFieldCell const& Cell);
-	FFlowFieldCell* GetCellAt(int32 const& x, int32 const& y);
-	
 };
