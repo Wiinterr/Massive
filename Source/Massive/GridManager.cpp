@@ -39,25 +39,24 @@ void AGridManager::GenerateGrid()
         }
     }
 
+    if (bSpawnObstacles) RandomizeGridCosts();
     if (bDrawDebug) DrawDebugGrid();
-    if (bSpawnObstacles)
-    {
-        RandomizeGridCosts();
-    }
 }
 
 void AGridManager::DrawDebugGrid()
 {
+    if (!bDrawDebug) return;
+    
     if (!GetWorld()) return;
-
-    FlushPersistentDebugLines(GetWorld());
-    FlushDebugStrings(GetWorld());
 
     for (const FGridCell& Cell : Grid)
     {
         // Color based on blocked/unblocked for Theta* visualization
-        FColor CellColor = Cell.bIsBlocked || Cell.Cost < 0 ? FColor::Red : FColor::White;
+        const FColor CellColor = Cell.bIsBlocked || Cell.Cost < 0 ? FColor::Red : FColor::White;
 
+        // Thickness based on blocked/unblocked for Theta* visualization
+        const float CellThickness = Cell.bIsBlocked || Cell.Cost < 0 ? 0.f : 2.f;
+        
         // Draw the cell box
         DrawDebugBox(
             GetWorld(),
@@ -65,33 +64,48 @@ void AGridManager::DrawDebugGrid()
             FVector(CellSize * 0.5f, CellSize * 0.5f, 5.f),
             CellColor,
             true,   // persistent
-            5.f     // duration
+            5.f,     // duration
+            0.f,
+            CellThickness
         );
 
-        // Draw FlowField integration value (FlowField debug)
+        const FString& ToPrint = FString::Printf(
+            TEXT("%d\n%.2f"),
+            Cell.Cost,
+            Cell.IntegrationValue == FLT_MAX ? -1.0f : Cell.IntegrationValue);
+        // Draw integration and cost values
         DrawDebugString(
             GetWorld(),
-            Cell.WorldLocation,
-            FString::Printf(TEXT("%.2f"), Cell.IntegrationValue),
+            Cell.WorldLocation + FVector(0.f, CellSize * 0.5f, 5.f),
+            ToPrint,
             nullptr,
             FColor::White,
             -1.f,
             false
         );
 
-        // Draw FlowField directional arrow
-        DrawDebugDirectionalArrow(
-            GetWorld(),
-            Cell.WorldLocation,
-            Cell.WorldLocation + Cell.FlowDirection * 30.f,
-            10.f,
-            FColor::White,
-            true,
-            5.f,
-            0,
-            4.f
-        );
+        if (bDrawFlowDirection)
+        {
+            // Draw FlowField directional arrow
+            DrawDebugDirectionalArrow(
+                GetWorld(),
+                Cell.WorldLocation,
+                Cell.WorldLocation + Cell.FlowDirection * 30.f,
+                10.f,
+                FColor::Yellow,
+                true,
+                5.f,
+                0,
+                4.f
+            );
+        }
     }
+}
+
+void AGridManager::FlushDebug()
+{
+    FlushPersistentDebugLines(GetWorld());
+    FlushDebugStrings(GetWorld());
 }
 
 void AGridManager::RandomizeGridCosts(float Chance)

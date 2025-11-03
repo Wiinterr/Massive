@@ -77,17 +77,15 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 	}
 
 	// Optional debug draw
-	if (GridManager->bDrawDebug)
+	if (GridManager->bDrawDebug && GridManager->bDrawAStarPath)
 	{
-		FlushDebugStrings(GetWorld());
-		
 		for (int32 i = 0; i + 2 < WorldPath.Num(); i++)
 		{
 			DrawDebugLine(
 				GetWorld(),
 				WorldPath[i],
 				WorldPath[i + 1],
-				FColor::White,
+				FColor::Black,
 				false,
 				1.5f,
 				0,
@@ -100,34 +98,12 @@ TArray<FVector> AAStarController::FindPath(const FVector& StartWorld, const FVec
 			WorldPath[WorldPath.Num() - 2],
 			WorldPath.Last(),
 			20.f,             // arrow size
-			FColor::White,    // make it stand out
+			FColor::Black,    // make it stand out
 			false,            // persistent lines?
 			1.5f,              // life time
 			0,                // depth priority
 			6.f               // thickness
 		);
-		
-		// Draw updated cost values
-		for (int32 y = 0; y < GridManager->GridHeight; y++)
-		{
-			for (int32 x = 0; x < GridManager->GridWidth; x++)
-			{
-				int32 Index = GridManager->XYToIndex(x, y);
-				if (!GridManager->Grid.IsValidIndex(Index)) continue;
-
-				FVector CellWorld = GridManager->CellToWorld(FIntPoint(x, y));
-
-				DrawDebugString(
-					GetWorld(),
-					CellWorld + FVector(0, 0, 20.f),
-					FString::Printf(TEXT("%d"), GridManager->Grid[Index].Cost),
-					nullptr,
-					FColor::White,
-					-1,
-					false
-				);
-			}
-		}
 	}
 
 	return WorldPath;

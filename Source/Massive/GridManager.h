@@ -51,6 +51,15 @@ public:
 	bool bDrawDebug = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid")
+	bool bDrawFlowDirection = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid")
+	bool bDrawAStarPath = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid")
+	bool bDrawThetaStarPath = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid")
 	bool bSpawnObstacles = false;
 	
 	TArray<FGridCell> Grid;
@@ -66,6 +75,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DrawDebugGrid();
+
+	UFUNCTION(BlueprintCallable)
+	void FlushDebug();
 	
 	void RandomizeGridCosts(float Chance = 0.2f);
 

@@ -85,10 +85,7 @@ void AFlowFieldController::ComputeIntegrationField()
 	if (!GridManager) return;
 
 	// Reset all integration values
-	for (FGridCell& Cell : GridManager->Grid)
-	{
-		Cell.IntegrationValue = FLT_MAX;
-	}
+	for (FGridCell& Cell : GridManager->Grid) { Cell.IntegrationValue = FLT_MAX; }
 	
 	FIntPoint TargetCellIndex = TargetIndex; // Assuming TargetIndex is valid
 	int32 TargetIdx = GridManager->XYToIndex(TargetCellIndex.X, TargetCellIndex.Y);
@@ -130,8 +127,6 @@ void AFlowFieldController::ComputeIntegrationField()
 
 void AFlowFieldController::ComputeDirections()
 {
-	if (GridManager->bDrawDebug) FlushPersistentDebugLines(GetWorld());
-	
 	for (FGridCell& Cell : GridManager->Grid)
 	{
 		TArray<const FGridCell*> Neighbors = GridManager->GetNeighbors(Cell.X, Cell.Y);
@@ -152,22 +147,6 @@ void AFlowFieldController::ComputeDirections()
 		{
 			FVector const Direction = (BestNeighbor->WorldLocation - Cell.WorldLocation).GetSafeNormal();
 			Cell.FlowDirection = Direction;
-
-			// ---- Debug arrows ----
-			if (GridManager->bDrawDebug)
-			{
-				DrawDebugDirectionalArrow(
-					GetWorld(),
-					Cell.WorldLocation,
-					Cell.WorldLocation + Direction * 40.f,   // arrow length
-					10.f,                              // arrow size
-					FColor::Yellow,
-					true,                               // persistent
-					0.f,
-					0,
-					3.f                                 // thickness
-				);
-			}
 		}
 		else
 		{
