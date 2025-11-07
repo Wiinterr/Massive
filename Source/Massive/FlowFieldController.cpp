@@ -61,6 +61,12 @@ FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocatio
 FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
 {
 	int32 const FlattenedIndex = index.Y * GridManager->GridWidth + index.X;
+
+	if (FlattenedIndex < 0 && FlattenedIndex >= GridManager->Grid.Num())
+	{
+		return FVector::ZeroVector;
+	}
+	
 	return GridManager->Grid[FlattenedIndex].FlowDirection;
 }
 

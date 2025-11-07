@@ -14,17 +14,14 @@
   <component name="ChangeListManager">
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_MarqueeHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_MarqueeHUD.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_AStarController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_AStarController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_FlowFieldController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_FlowFieldController.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Input/IMC_RTS.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Input/IMC_RTS.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_GridManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_GridManager.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_ThetaStarController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Pathfinding/BP_ThetaStarController.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/AStarController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/AStarController.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/GridManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/GridManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/ThetaStarController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/ThetaStarController.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,6 +210,7 @@
       <workItem from="1762068328073" duration="12181000" />
       <workItem from="1762099400353" duration="2510000" />
       <workItem from="1762157571373" duration="4840000" />
+      <workItem from="1762398279086" duration="4984000" />
     </task>
     <servers />
   </component>
