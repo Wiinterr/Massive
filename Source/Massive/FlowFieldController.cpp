@@ -25,13 +25,15 @@ void AFlowFieldController::BeginPlay()
 	}
 }
 
-void AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLocation)
+TArray<FGridCell> const& AFlowFieldController::SetTargetCellByWorldLocation(FVector const& WorldLocation)
 {
-	if (GridManager->Grid.Num() == 0) return;
+	if (GridManager->Grid.Num() == 0) return GridManager->Grid;
 
 	TargetIndex = WorldLocationToIndex(WorldLocation);
 	
 	SetTargetCell(TargetIndex.X, TargetIndex.Y);
+
+	return GridManager->Grid;
 }
 
 FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocation)
@@ -58,7 +60,7 @@ FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocatio
 	return FIntPoint(GridX, GridY);
 }
 
-FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
+FVector AFlowFieldController::GetFlowOfCell(FIntPoint index, TArray<FGridCell> OverrideGrid)
 {
 	int32 const FlattenedIndex = index.Y * GridManager->GridWidth + index.X;
 
@@ -67,9 +69,8 @@ FVector AFlowFieldController::GetFlowOfCell(FIntPoint index)
 		return FVector::ZeroVector;
 	}
 	
-	return GridManager->Grid[FlattenedIndex].FlowDirection;
+	return OverrideGrid[FlattenedIndex].FlowDirection;
 }
-
 
 void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 {
@@ -82,8 +83,6 @@ void AFlowFieldController::SetTargetCell(int32 const& x, int32 const& y)
 
 	ComputeIntegrationField();
 	ComputeDirections();
-	
-	//if (bDrawDebugPath) DrawDebugGrid();
 }
 
 void AFlowFieldController::ComputeIntegrationField()

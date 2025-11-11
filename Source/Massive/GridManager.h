@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "GridManager.generated.h"
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, Blueprintable)
 struct FGridCell
 {
 	GENERATED_BODY()

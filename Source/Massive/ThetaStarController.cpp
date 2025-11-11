@@ -67,7 +67,7 @@ TArray<FVector> AThetaStarController::FindPath(const FVector& StartWorld, const 
 		return {};
 	}
 
-	// Run the A* core (this part can stay private, taking FIntPoints)
+	// Run the Theta* core (this part can stay private, taking FIntPoints)
 	TArray<FIntPoint> CellPath = RunThetaStar(StartCell, GoalCell);
 
 	// Convert back to world space

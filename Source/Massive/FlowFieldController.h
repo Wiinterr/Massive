@@ -25,13 +25,13 @@ public:
 	bool bDrawDebugPath = false;
 	
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
-	void SetTargetCellByWorldLocation(FVector const& WorldLocation);
+	TArray<FGridCell> const& SetTargetCellByWorldLocation(FVector const& WorldLocation);
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
 	FIntPoint WorldLocationToIndex(FVector const& WorldLocation);
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
-	FVector GetFlowOfCell(FIntPoint index);
+	FVector GetFlowOfCell(FIntPoint index, TArray<FGridCell> OverrideGrid);
 
 protected:
 	virtual void BeginPlay() override;
