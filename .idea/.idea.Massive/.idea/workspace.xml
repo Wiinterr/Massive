@@ -14,19 +14,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_MarqueeHUD.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_MarqueeHUD.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSPlayerController.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_ControlGroup.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_ControlGroup.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_ControlGroupManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_ControlGroupManager.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CustomCrowdController.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CustomCrowdController.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Materials/M_UnitMaterial.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Materials/M_UnitMaterial.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/3/74/SLKIZIP1WHS3UXCRQH29GF.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +31,8 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Source/Massive/AStarController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Massive/AStarController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Massive/BoidsComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Massive/BoidsComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Massive/FlowFieldController.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Massive/GridManager.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -56,7 +46,7 @@
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="Toolset" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -220,6 +210,9 @@
       <workItem from="1762680085281" duration="623000" />
       <workItem from="1762871376628" duration="6604000" />
       <workItem from="1763108574351" duration="2656000" />
+      <workItem from="1765266290039" duration="4353000" />
+      <workItem from="1765443807692" duration="3471000" />
+      <workItem from="1765527890613" duration="3485000" />
     </task>
     <servers />
   </component>
