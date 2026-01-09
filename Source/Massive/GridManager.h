@@ -61,6 +61,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid")
 	bool bSpawnObstacles = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Grid",
+				meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ObstacleSpawnChance = 0.2f;
 	
 	TArray<FGridCell> Grid;
 	

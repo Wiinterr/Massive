@@ -39,7 +39,7 @@ void AGridManager::GenerateGrid()
         }
     }
 
-    if (bSpawnObstacles) RandomizeGridCosts();
+    if (bSpawnObstacles) RandomizeGridCosts(ObstacleSpawnChance);
     if (bDrawDebug) DrawDebugGrid();
 }
 
@@ -110,6 +110,9 @@ void AGridManager::FlushDebug()
 
 void AGridManager::RandomizeGridCosts(float Chance)
 {
+    // Clamp value to between 0 and 1
+    Chance = FMath::Clamp(Chance, 0.f, 1.f);
+    
     for (FGridCell& Cell : Grid)
     {
         if (FMath::FRand() < Chance)

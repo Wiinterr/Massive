@@ -31,7 +31,7 @@ public:
 	FIntPoint WorldLocationToIndex(FVector const& WorldLocation);
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="FlowField")
-	FVector GetFlowOfCell(FIntPoint index, TArray<FGridCell> OverrideGrid);
+	FVector GetFlowOfCell(FIntPoint index, const TArray<FGridCell> OverrideGrid);
 
 protected:
 	virtual void BeginPlay() override;

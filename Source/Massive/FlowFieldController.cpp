@@ -60,7 +60,7 @@ FIntPoint AFlowFieldController::WorldLocationToIndex(FVector const& WorldLocatio
 	return FIntPoint(GridX, GridY);
 }
 
-FVector AFlowFieldController::GetFlowOfCell(FIntPoint index, TArray<FGridCell> OverrideGrid)
+FVector AFlowFieldController::GetFlowOfCell(FIntPoint index, const TArray<FGridCell> OverrideGrid)
 {
 	int32 const FlattenedIndex = index.Y * GridManager->GridWidth + index.X;
 

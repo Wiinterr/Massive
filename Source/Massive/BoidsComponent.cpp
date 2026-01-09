@@ -102,7 +102,7 @@ FVector UBoidsComponent::ComputeBoidsOffset()
 
 	if (BoidsToAvoid == 0) return FVector::ZeroVector;
 	
-	UE_LOG(LogTemp, Warning, TEXT("We made it past!"));
+	//UE_LOG(LogTemp, Warning, TEXT("We made it past!"));
 	
 	Separation /= BoidsToAvoid;
 	Alignment /= BoidsToAvoid;
