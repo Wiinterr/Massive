@@ -14,14 +14,12 @@
   <component name="ChangeListManager">
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_RTSInterface.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CommandManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CommandManager.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/FlowFieldController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/FlowFieldController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/FlowFieldController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/6/NO/L1ZJ0SZEE0UYDYH80CE4ZI.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/6/NO/L1ZJ0SZEE0UYDYH80CE4ZI.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Massive/GridManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/GridManager.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,6 +225,7 @@
       <workItem from="1767949805592" duration="6178000" />
       <workItem from="1768552205884" duration="2963000" />
       <workItem from="1769071128493" duration="593000" />
+      <workItem from="1769159327417" duration="3145000" />
     </task>
     <servers />
   </component>

@@ -112,9 +112,24 @@ void AGridManager::RandomizeGridCosts(float Chance)
 {
     // Clamp value to between 0 and 1
     Chance = FMath::Clamp(Chance, 0.f, 1.f);
+
+    const int32 HalfIgnore = IgnoreSpawnDimension * 0.5;
+    const int32 CenterX = GridWidth * 0.5;
+    const int32 CenterY = GridHeight * 0.5;
+
+    const int32 MinX = CenterX - HalfIgnore;
+    const int32 MaxX = CenterX + HalfIgnore - 1;
+    const int32 MinY = CenterY - HalfIgnore;
+    const int32 MaxY = CenterY + HalfIgnore - 1;
     
     for (FGridCell& Cell : Grid)
     {
+        if (Cell.X >= MinX && Cell.X <= MaxX &&
+            Cell.Y >= MinY && Cell.Y <= MaxY)
+        {
+            continue;
+        }
+        
         if (FMath::FRand() < Chance)
         {
             Cell.Cost = -1;
