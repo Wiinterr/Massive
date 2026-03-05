@@ -16,7 +16,6 @@
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CommandManager.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_CommandManager.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -236,6 +235,7 @@
       <workItem from="1769071128493" duration="593000" />
       <workItem from="1769159327417" duration="3145000" />
       <workItem from="1772522344961" duration="2277000" />
+      <workItem from="1772700440660" duration="2800000" />
     </task>
     <servers />
   </component>
