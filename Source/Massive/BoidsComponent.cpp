@@ -40,6 +40,10 @@ FVector UBoidsComponent::ComputeBoidsOffset()
 	// Scan nearby grid cells
 	const int CellRadius = FMath::CeilToInt(NeighborRadius / GridManager->CellSize);
 
+	// Now find actors near this cell
+	TArray<AActor*> Temp;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), Owner->GetClass(), Temp);
+	
 	for (int y = -CellRadius; y <= CellRadius; ++y)
 	{
 		for (int x = -CellRadius; x <= CellRadius; ++x)
@@ -51,12 +55,8 @@ FVector UBoidsComponent::ComputeBoidsOffset()
 
 			const FVector CellWorld = GridManager->CellToWorld(FIntPoint(NX, NY));
 
-			// Very cheap distance check
+			// Distance check
 			if (FVector::DistSquared(CellWorld, MyPos) > NeighborRadius * NeighborRadius) continue;
-
-			// Now find actors near this cell
-			TArray<AActor*> Temp;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), Owner->GetClass(), Temp);
 
 			for (AActor* Other : Temp)
 			{
@@ -89,6 +89,7 @@ FVector UBoidsComponent::ComputeBoidsOffset()
 		if (Dist < KINDA_SMALL_NUMBER) continue;
 
 		// Separation
+		// Using Dist * Dist for stronger separation when close
 		if (Dist <= SeparationRadius)
 		{
 			Separation += (MyPos - NeighborPos).GetSafeNormal() / Dist;
@@ -116,6 +117,10 @@ FVector UBoidsComponent::ComputeBoidsOffset()
 		(Separation * SeparationWeight) +
 		(Alignment * AlignmentWeight) +
 		(Cohesion * CohesionWeight);
+
+	// Goal Alignment Bias
+	FVector GoalDir = Owner->GetVelocity().GetSafeNormal();
+	Steering += GoalDir * 0.5f;
 
 	return Steering.GetClampedToSize(0.f, MaxForce);
 }
