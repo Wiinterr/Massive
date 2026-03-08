@@ -26,7 +26,7 @@ public:
 	float NeighborRadius = 300.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Boids")
-	float SeparationRadius = 180.f;
+	float SeparationRadius = 300.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Boids")
 	float MaxForce = 600.f;
