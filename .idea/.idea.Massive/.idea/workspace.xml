@@ -13,18 +13,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_CameraPawn.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_CameraPawn.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_HeroUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Massive.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/Massive.sln.DotSettings.user" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Massive/BoidsComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/BoidsComponent.h" afterDir="false" />
-    </list>
+    <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -241,7 +230,7 @@
       <workItem from="1772700440660" duration="6553000" />
       <workItem from="1772785261636" duration="3953000" />
       <workItem from="1772800342229" duration="4278000" />
-      <workItem from="1772963243490" duration="2218000" />
+      <workItem from="1772963243490" duration="2532000" />
     </task>
     <servers />
   </component>
