@@ -37,6 +37,7 @@
     <setting file="file://$PROJECT_DIR$/Source/Massive/ThetaStarController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Massive/ThetaStarController.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../Program Files/Epic Games/UE_5.4/Engine/Source/Runtime/Engine/Classes/GameFramework/MovementComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../Program Files/Epic Games/UE_5.4/Engine/Source/Runtime/UMG/Public/Components/TextBlock.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -231,6 +232,7 @@
       <workItem from="1772785261636" duration="3953000" />
       <workItem from="1772800342229" duration="4278000" />
       <workItem from="1772963243490" duration="2532000" />
+      <workItem from="1773309335365" duration="33000" />
     </task>
     <servers />
   </component>
