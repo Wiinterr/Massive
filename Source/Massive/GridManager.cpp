@@ -177,6 +177,56 @@ void AGridManager::SpawnObstacles(TSubclassOf<AActor> ObstacleClass)
     UE_LOG(LogTemp, Log, TEXT("Obstacles spawned for blocked cells."));
 }
 
+void AGridManager::DiagonalGridCosts()
+{
+    const int32 HalfIgnore = IgnoreSpawnDimension * 0.5;
+    const int32 CenterX = GridWidth * 0.5;
+    const int32 CenterY = GridHeight * 0.5;
+
+    const int32 MinX = CenterX - HalfIgnore;
+    const int32 MaxX = CenterX + HalfIgnore - 1;
+    const int32 MinY = CenterY - HalfIgnore;
+    const int32 MaxY = CenterY + HalfIgnore - 1;
+
+    const int32 DiagonalOffset = 6;
+    const int32 Thickness = 1;
+    const int32 CenterDiag = CenterX + CenterY;
+
+    for (FGridCell& Cell : Grid)
+    {
+        if (Cell.X >= MinX && Cell.X <= MaxX &&
+            Cell.Y >= MinY && Cell.Y <= MaxY)
+        {
+            continue;
+        }
+
+        int32 Diag = Cell.X + Cell.Y;
+
+        bool bOnDiagonal =
+            FMath::Abs(Diag - (CenterDiag + DiagonalOffset)) <= Thickness ||
+            FMath::Abs(Diag - (CenterDiag - DiagonalOffset)) <= Thickness;
+
+        if (bOnDiagonal)
+        {
+            if (Cell.X % 6 < 4)
+            {
+                Cell.Cost = -1;
+                Cell.bIsBlocked = true;
+            }
+            else
+            {
+                Cell.Cost = 1;
+                Cell.bIsBlocked = false;
+            }
+        }
+        else
+        {
+            Cell.Cost = 1;
+            Cell.bIsBlocked = false;
+        }
+    }
+}
+
 TArray<const FGridCell*> AGridManager::GetNeighbors(int32 const& X, int32 const& Y) const
 {
     TArray<const FGridCell*> Neighbors;

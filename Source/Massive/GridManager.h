@@ -91,6 +91,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnObstacles(TSubclassOf<AActor> ObstacleClass);
 	
+	UFUNCTION(BlueprintCallable)
+	void DiagonalGridCosts();
+
 	TArray<const FGridCell*> GetNeighbors(int32 const& X, int32 const& Y) const;
 	
 	// Index helpers
