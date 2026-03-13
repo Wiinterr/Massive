@@ -69,6 +69,7 @@ void AGridManager::DrawDebugGrid()
             CellThickness
         );
 
+/*
         const FString& ToPrint = FString::Printf(
             TEXT("%d\n%.2f"),
             Cell.Cost,
@@ -83,6 +84,7 @@ void AGridManager::DrawDebugGrid()
             -1.f,
             false
         );
+*/
 
         if (bDrawFlowDirection)
         {
@@ -188,7 +190,7 @@ void AGridManager::DiagonalGridCosts()
     const int32 MinY = CenterY - HalfIgnore;
     const int32 MaxY = CenterY + HalfIgnore - 1;
 
-    const int32 DiagonalOffset = 6;
+    const int32 DiagonalOffset = 11;
     const int32 Thickness = 1;
     const int32 CenterDiag = CenterX + CenterY;
 
@@ -202,21 +204,32 @@ void AGridManager::DiagonalGridCosts()
 
         int32 Diag = Cell.X + Cell.Y;
 
-        bool bOnDiagonal =
-            FMath::Abs(Diag - (CenterDiag + DiagonalOffset)) <= Thickness ||
-            FMath::Abs(Diag - (CenterDiag - DiagonalOffset)) <= Thickness;
+		bool bDiagA = FMath::Abs(Diag - CenterDiag) <= Thickness;
+        bool bDiagB = FMath::Abs(Diag - (CenterDiag + DiagonalOffset)) <= Thickness;
+        bool bDiagC = FMath::Abs(Diag - (CenterDiag + 2 * DiagonalOffset)) <= Thickness;
 
-        if (bOnDiagonal)
+        if (bDiagA)
         {
-            if (Cell.X % 6 < 4)
+            if (Cell.Y % 8 < 6)
             {
                 Cell.Cost = -1;
                 Cell.bIsBlocked = true;
             }
-            else
+        }
+		else if (bDiagB)
+		{
+			if (Cell.X % 4 < 2)
             {
-                Cell.Cost = 1;
-                Cell.bIsBlocked = false;
+                Cell.Cost = -1;
+                Cell.bIsBlocked = true;
+            }
+		}
+        else if (bDiagC)
+        {
+            if (Cell.Y % 6 < 4)
+            {
+                Cell.Cost = -1;
+                Cell.bIsBlocked = true;
             }
         }
         else
