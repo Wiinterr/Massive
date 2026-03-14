@@ -15,8 +15,12 @@
   <component name="ChangeListManager">
     <list default="true" id="d10fe13f-ca8c-49fb-9f9e-2fc878bd653b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Massive/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_SelectedUnitsArea.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/HUDs/BP_SelectedUnitsArea.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_BaseUnit.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_EliteUnit.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_NormalUnit.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Custom/Blueprints/Units/BP_UnitSpawner.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/6/Z0/TY9WSTWK7NV9TPIXF1QN4Q.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/6/Z0/TY9WSTWK7NV9TPIXF1QN4Q.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/__ExternalActors__/Maps/TestGrounds/D/FE/5TLQ4EFN13Z5W5NYOKLD30.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Massive/GridManager.cpp" afterDir="false" />
     </list>
@@ -240,6 +244,8 @@
       <workItem from="1772963243490" duration="2532000" />
       <workItem from="1773309335365" duration="33000" />
       <workItem from="1773334623233" duration="2583000" />
+      <workItem from="1773397708919" duration="989000" />
+      <workItem from="1773415611834" duration="667000" />
     </task>
     <servers />
   </component>

@@ -190,7 +190,7 @@ void AGridManager::DiagonalGridCosts()
     const int32 MinY = CenterY - HalfIgnore;
     const int32 MaxY = CenterY + HalfIgnore - 1;
 
-    const int32 DiagonalOffset = 11;
+    const int32 DiagonalOffset = 12;
     const int32 Thickness = 1;
     const int32 CenterDiag = CenterX + CenterY;
 
@@ -204,7 +204,7 @@ void AGridManager::DiagonalGridCosts()
 
         int32 Diag = Cell.X + Cell.Y;
 
-		bool bDiagA = FMath::Abs(Diag - CenterDiag) <= Thickness;
+		bool bDiagA = FMath::Abs(Diag - CenterDiag - 3) <= Thickness;
         bool bDiagB = FMath::Abs(Diag - (CenterDiag + DiagonalOffset)) <= Thickness;
         bool bDiagC = FMath::Abs(Diag - (CenterDiag + 2 * DiagonalOffset)) <= Thickness;
 
