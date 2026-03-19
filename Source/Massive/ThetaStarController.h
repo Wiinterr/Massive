@@ -31,6 +31,16 @@ protected:
 	virtual void BeginPlay() override;
 
 private:	
+    // Node arrays used in the search (simple POD arrays)
+    struct FSearchNode
+    {
+        float G = TNumericLimits<float>::Max(); // cost from stat
+        float H = 0.f; // heuristic
+        float F = TNumericLimits<float>::Max(); // final cost
+        int32 Parent = -1;
+        bool bClosed = false;
+    };
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -40,6 +50,8 @@ private:
 	}
 
 	float MovementCostBetween(int32 AIndex, int32 BIndex) const;
+
+    void SetVertex(int32 Curr, TArray<FSearchNode>& SearchNodes);
 
     // Open set (binary heap with positions for decrease-key)
     struct FHeapItem
@@ -148,15 +160,5 @@ private:
                 else break;
             }
         }
-    };
-
-    // Node arrays used in the search (simple POD arrays)
-    struct FSearchNode
-    {
-        float G = TNumericLimits<float>::Max(); // cost from stat
-        float H = 0.f; // heuristic
-        float F = TNumericLimits<float>::Max(); // final cost
-        int32 Parent = -1;
-        bool bClosed = false;
     };
 };

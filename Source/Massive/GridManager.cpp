@@ -124,6 +124,12 @@ void AGridManager::RandomizeGridCosts(float Chance)
     const int32 MinY = CenterY - HalfIgnore;
     const int32 MaxY = CenterY + HalfIgnore - 1;
     
+	const int32 SpawnMinX = 45, SpawnMaxX = 60;
+	const int32 SpawnMinY = 30, SpawnMaxY = 45;
+
+	const int32 GoalMinX = 65, GoalMaxX = 75;
+	const int32 GoalMinY = 62, GoalMaxY = 72;
+
     for (FGridCell& Cell : Grid)
     {
         if (Cell.X >= MinX && Cell.X <= MaxX &&
@@ -132,6 +138,18 @@ void AGridManager::RandomizeGridCosts(float Chance)
             continue;
         }
         
+		if (Cell.X >= SpawnMinX && Cell.X <= SpawnMaxX &&
+			Cell.Y >= SpawnMinY && Cell.Y <= SpawnMaxY)
+		{
+			continue;
+		}
+
+		if (Cell.X >= GoalMinX && Cell.X <= GoalMaxX &&
+			Cell.Y >= GoalMinY && Cell.Y <= GoalMaxY)
+		{
+			continue;
+		}
+
         if (FMath::FRand() < Chance)
         {
             Cell.Cost = -1;

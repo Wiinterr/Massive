@@ -42,11 +42,10 @@ float AThetaStarController::MovementCostBetween(int32 AIndex, int32 BIndex) cons
 	IndexToXY(AIndex, Ax, Ay);
 	IndexToXY(BIndex, Bx, By);
 
-	int Dx = FMath::Abs(Ax - Bx);
-	int Dy = FMath::Abs(Ay - By);
+	float Dx = FMath::Abs(Ax - Bx);
+	float Dy = FMath::Abs(Ay - By);
 
-	if (Dx + Dy == 1) return 1.f;
-	return DiagonalCost;
+	return FMath::Sqrt(Dx * Dx + Dy * Dy);
 }
 
 TArray<FVector> AThetaStarController::FindPath(const FVector& StartWorld, const FVector& GoalWorld)
@@ -166,6 +165,8 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     SearchNodes[StartIdx].G = 0.f;
     SearchNodes[StartIdx].H = Heuristic(StartIdx, GoalIdx);
     SearchNodes[StartIdx].F = SearchNodes[StartIdx].H; // G=0 so F=H
+
+	//SearchNodes[StartIdx].Parent = StartIdx;
     OpenSet.Push(StartIdx, SearchNodes[StartIdx].F);
 
     bool bFound = false;
@@ -174,6 +175,8 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     {
         const int32 Curr = OpenSet.PopMin();
         if (Curr == -1) break;
+
+        //SetVertex(Curr, SearchNodes);
 
         if (Curr == GoalIdx)
         {
@@ -189,8 +192,58 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     	
         // Expand neighbors
     	const TArray<const FGridCell*> Neighbors = GridManager->GetNeighbors(CurrX, CurrY);
+
+        int32 ParentIdx = SearchNodes[Curr].Parent;
+
+for (const FGridCell* NbCell : Neighbors)
+{
+	const int32 Nb = GridManager->XYToIndex(NbCell->X, NbCell->Y);
+
+	if (SearchNodes[Nb].bClosed)
+		continue;
+
+	float TerrainCost = (GridManager->Grid.IsValidIndex(Nb) ?
+		FMath::Max(1, GridManager->Grid[Nb].Cost) : 1);
+
+	float TentativeG;
+
+	// ✅ Lazy Theta* logic
+	if (ParentIdx != -1 && HasLineOfSight(ParentIdx, Nb))
+	{
+		TentativeG = SearchNodes[ParentIdx].G +
+			MovementCostBetween(ParentIdx, Nb) * TerrainCost;
+
+		if (TentativeG < SearchNodes[Nb].G)
+		{
+			SearchNodes[Nb].Parent = ParentIdx;
+			SearchNodes[Nb].G = TentativeG;
+			SearchNodes[Nb].H = Heuristic(Nb, GoalIdx);
+			SearchNodes[Nb].F = SearchNodes[Nb].G + SearchNodes[Nb].H;
+
+			OpenSet.PushOrDecrease(Nb, SearchNodes[Nb].F);
+		}
+	}
+	else
+	{
+		TentativeG = SearchNodes[Curr].G +
+			MovementCostBetween(Curr, Nb) * TerrainCost;
+
+		if (TentativeG < SearchNodes[Nb].G)
+		{
+			SearchNodes[Nb].Parent = Curr;
+			SearchNodes[Nb].G = TentativeG;
+			SearchNodes[Nb].H = Heuristic(Nb, GoalIdx);
+			SearchNodes[Nb].F = SearchNodes[Nb].G + SearchNodes[Nb].H;
+
+			OpenSet.PushOrDecrease(Nb, SearchNodes[Nb].F);
+		}
+	}
+}
+
+/*
     	for (const FGridCell* NbCell : Neighbors)
     	{
+
     		const int32 Nb = GridManager->XYToIndex(NbCell->X, NbCell->Y);
     		if (SearchNodes[Nb].bClosed) continue;
 
@@ -199,7 +252,7 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     
     		// Lazy Theta*: Attempt to connect neighbor to parent of current if LOS exists
     		int32 ParentIdx = SearchNodes[Curr].Parent;
-    		if (ParentIdx != -1 && HasLineOfSight(ParentIdx, Nb))
+    		if (ParentIdx != -1 && ParentIdx != Nb && HasLineOfSight(ParentIdx, Nb))
     		{
     			float TentativeG = SearchNodes[ParentIdx].G + MovementCostBetween(ParentIdx, Nb) * TerrainCost;
     			if (TentativeG < SearchNodes[Nb].G)
@@ -225,6 +278,7 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     			}
     		}
     	}
+*/
     }
 
     // Reconstruct path (grid-space)
@@ -232,12 +286,23 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     {
         TArray<int32> PathIdx;
         PathIdx.Reserve(64);
+
         int32 Trace = GoalIdx;
-        while (Trace != -1)
+		int32 SafetyCounter = 0;
+		const int32 MaxIterations = NumNodes;
+
+        while (Trace != -1 && SafetyCounter < MaxIterations)
         {
             PathIdx.Add(Trace);
             Trace = SearchNodes[Trace].Parent;
+			SafetyCounter++;
         }
+		if (SafetyCounter >= MaxIterations)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Theta* path reconstruction failed: possible cycle detected."));
+    		return {};
+		}
+
         Algo::Reverse(PathIdx);
 
         ResultPath.Reserve(PathIdx.Num());
@@ -250,6 +315,48 @@ TArray<FIntPoint> AThetaStarController::RunThetaStar(const FIntPoint& StartCell,
     }
 
     return ResultPath;
+}
+
+void AThetaStarController::SetVertex(int32 Curr, TArray<FSearchNode>& SearchNodes)
+{
+	int32 ParentIdx = SearchNodes[Curr].Parent;
+
+	if (ParentIdx == -1)
+		return;
+
+	if (!HasLineOfSight(ParentIdx, Curr))
+	{
+		float BestG = TNumericLimits<float>::Max();
+		int32 BestParent = -1;
+
+		int32 CurrX, CurrY;
+		IndexToXY(Curr, CurrX, CurrY);
+
+		const TArray<const FGridCell*> Neighbors = GridManager->GetNeighbors(CurrX, CurrY);
+
+		for (const FGridCell* NbCell : Neighbors)
+		{
+			int32 Nb = GridManager->XYToIndex(NbCell->X, NbCell->Y);
+
+			// Only consider CLOSED nodes
+			if (!SearchNodes[Nb].bClosed)
+				continue;
+
+			float G = SearchNodes[Nb].G + MovementCostBetween(Nb, Curr);
+
+			if (G < BestG)
+			{
+				BestG = G;
+				BestParent = Nb;
+			}
+		}
+
+		if (BestParent != -1)
+		{
+			SearchNodes[Curr].Parent = BestParent;
+			SearchNodes[Curr].G = BestG;
+		}
+	}
 }
 
 bool AThetaStarController::HasLineOfSight(int32 FromIdx, int32 ToIdx) const
@@ -273,8 +380,19 @@ bool AThetaStarController::HasLineOfSight(int32 FromIdx, int32 ToIdx) const
 	while (true)
 	{
 		int32 Idx = GridManager->XYToIndex(X, Y);
-		if (!GridManager->Grid.IsValidIndex(Idx) || !GridManager->Grid[GridManager->XYToIndex(X, Y)].bIsBlocked)
+
+		if (!GridManager->Grid.IsValidIndex(Idx) ||
+		    GridManager->Grid[Idx].bIsBlocked)
 			return false;
+
+		if (X != X0 && Y != Y0)
+		{
+			int32 Idx1 = GridManager->XYToIndex(X, Y0);
+			int32 Idx2 = GridManager->XYToIndex(X0, Y);
+
+			if (GridManager->Grid[Idx1].bIsBlocked || GridManager->Grid[Idx2].bIsBlocked)
+				return false;
+		}
 
 		if (X == X1 && Y == Y1) break;
 
