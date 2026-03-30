@@ -365,40 +365,65 @@ bool AThetaStarController::HasLineOfSight(int32 FromIdx, int32 ToIdx) const
 	IndexToXY(FromIdx, X0, Y0);
 	IndexToXY(ToIdx, X1, Y1);
 
-	// Bresenham's line algorithm (grid-based)
-	int32 Dx = FMath::Abs(X1 - X0);
-	int32 Dy = FMath::Abs(Y1 - Y0);
+	int DX = X1 - X0;
+	int DY = Y1 - Y0;
 
-	int32 SX = (X0 < X1) ? 1 : -1;
-	int32 SY = (Y0 < Y1) ? 1 : -1;
+	int NX = FMath::Abs(DX);
+	int NY = FMath::Abs(DY);
 
-	int32 Err = Dx - Dy;
+	int SIGN_X = (DX > 0) ? 1 : -1;
+	int SIGN_Y = (DY > 0) ? 1 : -1;
 
 	int X = X0;
 	int Y = Y0;
 
-	while (true)
+	int IX = 0;
+	int IY = 0;
+
+	while (IX < NX || IY < NY)
 	{
-		int32 Idx = GridManager->XYToIndex(X, Y);
-
-		if (!GridManager->Grid.IsValidIndex(Idx) ||
-		    GridManager->Grid[Idx].bIsBlocked)
-			return false;
-
-		if (X != X0 && Y != Y0)
+		// Decide which direction to step
+		if ((1 + 2 * IX) * NY < (1 + 2 * IY) * NX)
 		{
-			int32 Idx1 = GridManager->XYToIndex(X, Y0);
-			int32 Idx2 = GridManager->XYToIndex(X0, Y);
+			// step in x
+			X += SIGN_X;
+			IX++;
+		}
+		else if ((1 + 2 * IX) * NY > (1 + 2 * IY) * NX)
+		{
+			// step in y
+			Y += SIGN_Y;
+			IY++;
+		}
+		else
+		{
+			int NEXT_X = X + SIGN_X;
+			int NEXT_Y = Y + SIGN_Y;
 
-			if (GridManager->Grid[Idx1].bIsBlocked || GridManager->Grid[Idx2].bIsBlocked)
+			int IDX1 = GridManager->XYToIndex(NEXT_X, Y);
+			int IDX2 = GridManager->XYToIndex(X, NEXT_Y);
+
+			if (!GridManager->Grid.IsValidIndex(IDX1) ||
+				!GridManager->Grid.IsValidIndex(IDX2) ||
+				GridManager->Grid[IDX1].bIsBlocked ||
+				GridManager->Grid[IDX2].bIsBlocked)
+			{
 				return false;
+			}
+
+			X = NEXT_X;
+			Y = NEXT_Y;
+			IX++;
+			IY++;
 		}
 
-		if (X == X1 && Y == Y1) break;
+		int IDX = GridManager->XYToIndex(X, Y);
 
-		int32 E2 = 2 * Err;
-		if (E2 > -Dy) { Err -= Dy; X += SX; }
-		if (E2 <  Dx) { Err += Dx; Y += SY; }
+		if (!GridManager->Grid.IsValidIndex(IDX) ||
+			GridManager->Grid[IDX].bIsBlocked)
+		{
+			return false;
+		}
 	}
 
 	return true;
